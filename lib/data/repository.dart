@@ -86,6 +86,8 @@ class FuelixRepository {
         .get();
   }
 
+  Stream<List<FillUp>> watchAllFillUps() => db.select(db.fillUps).watch();
+
   Future<List<FillUp>> allFillUps() =>
       (db.select(db.fillUps)..orderBy([(f) => OrderingTerm.asc(f.date)]))
           .get();
@@ -123,6 +125,9 @@ class FuelixRepository {
           ..orderBy([(e) => OrderingTerm.desc(e.date)]))
         .get();
   }
+
+  Stream<List<Expense>> watchAllExpenses() =>
+      db.select(db.expenses).watch();
 
   Future<List<Expense>> allExpenses() =>
       (db.select(db.expenses)..orderBy([(e) => OrderingTerm.asc(e.date)]))

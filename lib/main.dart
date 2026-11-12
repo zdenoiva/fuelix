@@ -7,6 +7,7 @@ import 'app_state.dart';
 import 'features/garage/garage_screen.dart';
 import 'features/stats/stats_screen.dart';
 import 'l10n/strings.dart';
+import 'services/backup_service.dart';
 import 'services/notifications.dart';
 import 'theme.dart';
 
@@ -14,6 +15,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AppState.instance.init();
   unawaited(NotificationService.instance.init());
+  unawaited(BackupService.dailyBackup());
   runApp(const FuelixApp());
 }
 
@@ -59,10 +61,7 @@ class _RootShellState extends State<RootShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _index,
-        children: const [GarageScreen(), StatsScreen()],
-      ),
+      body: _index == 0 ? const GarageScreen() : const StatsScreen(),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (value) => setState(() => _index = value),

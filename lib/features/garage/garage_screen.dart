@@ -65,12 +65,34 @@ class _GarageScreenState extends State<GarageScreen> {
               ),
             );
           }
-          return ListView.separated(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-            itemCount: vehicles.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 12),
-            itemBuilder: (context, index) =>
-                _VehicleCard(vehicle: vehicles[index], repo: _repo),
+          return StreamBuilder<List<FillUp>>(
+            stream: _repo.watchAllFillUps(),
+            builder: (context, fillSnapshot) {
+              return StreamBuilder<List<Expense>>(
+                stream: _repo.watchAllExpenses(),
+                builder: (context, expenseSnapshot) {
+                  final signature =
+                      (fillSnapshot.data ?? const <FillUp>[]).fold<int>(
+                        0,
+                        (sum, fill) => sum + fill.id,
+                      ) +
+                      (expenseSnapshot.data ?? const <Expense>[]).fold<int>(
+                        0,
+                        (sum, expense) => sum + expense.id,
+                      );
+                  return ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+                    itemCount: vehicles.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) => _VehicleCard(
+                      vehicle: vehicles[index],
+                      repo: _repo,
+                      refreshKey: signature,
+                    ),
+                  );
+                },
+              );
+            },
           );
         },
       ),
@@ -79,15 +101,21 @@ class _GarageScreenState extends State<GarageScreen> {
 }
 
 class _VehicleCard extends StatelessWidget {
-  const _VehicleCard({required this.vehicle, required this.repo});
+  const _VehicleCard({
+    required this.vehicle,
+    required this.repo,
+    required this.refreshKey,
+  });
 
   final Vehicle vehicle;
   final FuelixRepository repo;
+  final int refreshKey;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return FutureBuilder<VehicleStats>(
+      key: ValueKey('${vehicle.id}-$refreshKey'),
       future: repo.stats(vehicle.id),
       builder: (context, snapshot) {
         final stats = snapshot.data;

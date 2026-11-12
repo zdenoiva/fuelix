@@ -62,6 +62,34 @@ class BackupService {
     return file;
   }
 
+  /// Keeps a rolling local copy of the last five daily backups. This protects
+  /// against a lost phone even before OneDrive sign-in is available.
+  static Future<void> dailyBackup() async {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final backupDir = Directory(p.join(dir.path, 'backups'));
+      await backupDir.create(recursive: true);
+      final stamp = DateFormat('yyyyMMdd').format(DateTime.now());
+      final target = File(p.join(backupDir.path, 'fuelix-$stamp.json'));
+      if (await target.exists()) return;
+
+      final fresh = await createBackup();
+      await fresh.copy(target.path);
+
+      final files = backupDir
+          .listSync()
+          .whereType<File>()
+          .where((file) => file.path.endsWith('.json'))
+          .toList()
+        ..sort((a, b) => b.path.compareTo(a.path));
+      for (final old in files.skip(5)) {
+        await old.delete();
+      }
+    } catch (_) {
+      // A failed automatic backup must never block the app start.
+    }
+  }
+
   static Future<File> exportCsv() async {
     final db = AppState.instance.db;
     final vehicles = await db.select(db.vehicles).get();

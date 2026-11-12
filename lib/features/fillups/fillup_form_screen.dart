@@ -47,7 +47,6 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
   double? _latitude;
   double? _longitude;
   bool _locating = false;
-  bool _syncing = false;
 
   List<FillUp> _existing = const [];
   FillUp? _last;
@@ -133,25 +132,33 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
 
   double? get _totalValue => double.tryParse(_total.text.replaceAll(',', '.'));
 
+  /// The total is only derived from the unit price until the user types a
+  /// total of their own; after that it is never overwritten while typing.
+  bool _totalTouched = false;
+
   void _syncFromTotal() {
-    if (_syncing) return;
     final liters = _litersValue;
     final total = _totalValue;
+    _totalTouched = true;
     if (liters == null || liters <= 0 || total == null) return;
-    _syncing = true;
     _pricePerLiter.text = (total / liters).toStringAsFixed(3);
-    _syncing = false;
     setState(() {});
   }
 
   void _syncFromPrice() {
-    if (_syncing) return;
     final liters = _litersValue;
     final price = double.tryParse(_pricePerLiter.text.replaceAll(',', '.'));
     if (liters == null || liters <= 0 || price == null) return;
-    _syncing = true;
+    if (_totalTouched && _totalValue != null) return;
     _total.text = (price * liters).toStringAsFixed(2);
-    _syncing = false;
+    setState(() {});
+  }
+
+  void _selectAll(TextEditingController controller) {
+    controller.selection = TextSelection(
+      baseOffset: 0,
+      extentOffset: controller.text.length,
+    );
   }
 
   Future<void> _pickDate() async {
@@ -359,6 +366,7 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
                     ],
+                    onTap: () => _selectAll(_odometer),
                     onChanged: (_) => setState(() {}),
                     decoration: InputDecoration(
                       labelText: context.t('fillup.odometer'),
@@ -386,8 +394,13 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
                     ],
+                    onTap: () => _selectAll(_liters),
                     onChanged: (_) {
-                      _syncFromPrice();
+                      if (_totalTouched) {
+                        _syncFromTotal();
+                      } else {
+                        _syncFromPrice();
+                      }
                       setState(() {});
                     },
                     decoration: InputDecoration(
@@ -420,6 +433,7 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
                     ],
+                    onTap: () => _selectAll(_total),
                     onChanged: (_) => _syncFromTotal(),
                     decoration: InputDecoration(
                       labelText: context.t('fillup.totalPrice'),
@@ -437,6 +451,7 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
                     ],
+                    onTap: () => _selectAll(_pricePerLiter),
                     onChanged: (_) => _syncFromPrice(),
                     decoration: InputDecoration(
                       labelText: context.t('fillup.pricePerLiter'),

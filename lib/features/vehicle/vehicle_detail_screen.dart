@@ -72,7 +72,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen>
       MaterialPageRoute<void>(
         builder: (_) => FillUpFormScreen(
           vehicleId: widget.vehicleId,
-          prefilledOdometer: last?.odometer,
+          prefilledOdometer: last?.odometer ?? _vehicle?.initialOdometer,
         ),
       ),
     );
@@ -185,7 +185,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen>
                     Tab(text: context.t('tab.overview')),
                     Tab(text: context.t('fillup.title')),
                     Tab(text: context.t('expense.title')),
-                    Tab(text: context.t('reminder.title')),
+                    Tab(text: context.t('tab.service')),
                   ],
                 ),
                 Expanded(
@@ -237,14 +237,16 @@ class _OverviewTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<VehicleStats>(
-      future: repo.stats(vehicle.id),
-      builder: (context, statsSnapshot) {
-        final stats = statsSnapshot.data;
-        return StreamBuilder<List<FillUp>>(
-          stream: repo.watchFillUps(vehicle.id),
-          builder: (context, snapshot) {
-            final fills = snapshot.data ?? const <FillUp>[];
+    return StreamBuilder<List<FillUp>>(
+      stream: repo.watchFillUps(vehicle.id),
+      builder: (context, fillSnapshot) {
+        final fills = fillSnapshot.data ?? const <FillUp>[];
+        final signature = fills.fold<int>(0, (sum, fill) => sum + fill.id);
+        return FutureBuilder<VehicleStats>(
+          key: ValueKey('overview-$signature'),
+          future: repo.stats(vehicle.id),
+          builder: (context, statsSnapshot) {
+            final stats = statsSnapshot.data;
             return ListView(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
               children: [
@@ -263,7 +265,7 @@ class _OverviewTab extends StatelessWidget {
                     Expanded(
                       child: _QuickAction(
                         icon: Icons.build_outlined,
-                        label: context.t('reminder.add'),
+                        label: context.t('tab.service'),
                         onTap: onAddReminder,
                       ),
                     ),
@@ -368,7 +370,7 @@ class _OverviewTab extends StatelessWidget {
                               children: [
                                 Text(
                                   fill.stationName.isEmpty
-                                      ? context.t('fillup.title')
+                                      ? context.t('fillup.single')
                                       : fill.stationName,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,

@@ -105,6 +105,7 @@ class _StatsScreenState extends State<StatsScreen> {
       initialOdometer:
           _vehicles.firstWhere((v) => v.id == _vehicleId).initialOdometer,
     );
+    final categoryRows = _categoryRows();
 
     return Scaffold(
       appBar: AppBar(title: Text(context.t('stats.title'))),
@@ -144,7 +145,7 @@ class _StatsScreenState extends State<StatsScreen> {
                 child: _MetricCard(
                   label: context.t('stats.totalCost'),
                   value: context.roundMoney(fuelCost + extraCost),
-                  unit: AppState.instance.currency,
+                  unit: '',
                   icon: Icons.payments_outlined,
                 ),
               ),
@@ -157,7 +158,7 @@ class _StatsScreenState extends State<StatsScreen> {
                 child: _MetricCard(
                   label: context.t('stats.totalFuel'),
                   value: context.roundMoney(fuelCost),
-                  unit: AppState.instance.currency,
+                  unit: '',
                   icon: Icons.water_drop_outlined,
                 ),
               ),
@@ -204,12 +205,13 @@ class _StatsScreenState extends State<StatsScreen> {
               ),
             ),
           ],
+          if (categoryRows.isNotEmpty) ...[
           const SizedBox(height: 18),
           _SectionTitle(context.t('stats.byCategory')),
           SectionCard(
             child: Column(
               children: [
-                for (final row in _categoryRows())
+                for (final row in categoryRows)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 10),
                     child: Row(
@@ -235,6 +237,7 @@ class _StatsScreenState extends State<StatsScreen> {
               ],
             ),
           ),
+          ],
         ],
       ),
     );
