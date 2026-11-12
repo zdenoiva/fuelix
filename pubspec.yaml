@@ -1,0 +1,49 @@
+name: fuelix
+description: "Fuelix – tankovania, spotreba, servis a pripomienky pre tvoje auto."
+publish_to: 'none'
+version: 0.1.0+100
+
+environment:
+  sdk: ^3.13.7
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  drift: ^2.35.4
+  drift_flutter: ^0.3.1
+  sqlite3_flutter_libs: ^0.6.0+eol
+  path: ^1.9.1
+  path_provider: ^2.1.6
+  shared_preferences: ^2.5.6
+  http: ^1.6.0
+  crypto: ^3.0.8
+  intl: ^0.20.3
+  fl_chart: ^1.3.1
+  file_picker: ^13.3.3
+  share_plus: ^13.3.1
+  mobile_scanner: ^7.5.0
+  geolocator: ^14.1.2
+  flutter_local_notifications: ^23.0.1
+  image_picker: ^1.2.4
+  archive: ^4.6.0
+  apk_sideload: ^0.0.2
+  package_info_plus: ^10.2.2
+  url_launcher: ^6.3.3
+  timezone: ^0.11.2
+  flutter_timezone: ^5.1.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  build_runner: ^2.17.1
+  drift_dev: ^2.35.3
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/
