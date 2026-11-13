@@ -4,7 +4,7 @@ import 'package:fuelix/services/fuelio_import.dart';
 const _csv = '''
 "## Vehicle"
 "Name","Description","DistUnit","FuelUnit","ConsumptionUnit","ImportCSVDateFormat","VIN","Insurance","Plate","Make","Model","Year","TankCount","Tank1Type","Tank2Type","Active","Tank1Capacity","Tank2Capacity","FuelUnitTank2","FuelConsumptionTank2","guid","lastupdated"
-"Renault Scenic","2018 kupene","0","0","0","yyyy-MM-dd","","","PD404DU","Renault","Scenic","2010","1","100","0","1","60.0","0.0","0","0","veh-guid","1"
+"Renault Scenic","2018 kupene","0","0","0","yyyy-MM-dd","","","BA123XY","Renault","Scenic","2010","1","100","0","1","60.0","0.0","0","0","veh-guid","1"
 "## Log"
 "Data","Odo (km)","Fuel (litres)","Full","Price (optional)","l/100km (optional)","latitude (optional)","longitude (optional)","City (optional)","Notes (optional)","Missed","TankNumber","FuelType","VolumePrice","StationID (optional)","ExcludeDistance","UniqueId","TankCalc","Weather","guid","lastupdated"
 "2026-10-21 19:36","175084.0","50.0","1","93.0","9.35","48.77904","18.60845","Prievidza - Tesco","","0","1","110","1.86","120785","0.0","122","0.0",,"fill-2","1"
@@ -34,7 +34,7 @@ void main() {
 
     test('reads the vehicle', () {
       expect(preview.vehicle.name, 'Renault Scenic');
-      expect(preview.vehicle.plate, 'PD404DU');
+      expect(preview.vehicle.plate, 'BA123XY');
       expect(preview.vehicle.make, 'Renault');
       expect(preview.vehicle.year, 2010);
       expect(preview.vehicle.tankCapacity, 60);
