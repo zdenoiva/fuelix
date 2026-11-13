@@ -121,7 +121,8 @@
         <a class="btn btn-ghost" href="#features">Ako to funguje</a>
       </div>
       <div class="meta">
-        <span class="badge" id="version">verzia 0.1.0</span>
+        <span class="badge" id="version">verzia 0.3.0</span>
+        <span class="badge" id="downloads" hidden>stiahnutí</span>
         <span>Slovenčina · Čeština · English</span>
       </div>
     </div>
@@ -219,11 +220,49 @@
 </div>
 <script>
   document.getElementById('year').textContent = new Date().getFullYear();
+
   fetch('https://raw.githubusercontent.com/zdenoiva/fuelix/main/latest.json', { cache: 'no-store' })
     .then(function (r) { return r.ok ? r.json() : null; })
     .then(function (data) {
       if (!data || !data.version) return;
       document.getElementById('version').textContent = 'verzia ' + data.version;
+    })
+    .catch(function () {});
+
+  // Total number of APK downloads across all releases. Cached for 10 minutes
+  // so the public GitHub API rate limit is never a problem.
+  function skPlural(n) {
+    var m = n % 100;
+    if (m === 1) return 'stiahnutie';
+    if (m >= 2 && m <= 4) return 'stiahnutia';
+    return 'stiahnutí';
+  }
+
+  function showDownloads(total) {
+    if (!total || total < 1) return;
+    var el = document.getElementById('downloads');
+    el.textContent = '⬇ ' + total.toLocaleString('sk-SK') + ' ' + skPlural(total);
+    el.hidden = false;
+  }
+
+  try {
+    var cached = JSON.parse(localStorage.getItem('fuelix_downloads') || 'null');
+    if (cached && Date.now() - cached.at < 600000) showDownloads(cached.total);
+  } catch (e) {}
+
+  fetch('https://api.github.com/repos/zdenoiva/fuelix/releases?per_page=100', { cache: 'no-store' })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (releases) {
+      if (!Array.isArray(releases)) return;
+      var total = releases.reduce(function (sum, release) {
+        return sum + (release.assets || []).reduce(function (assetSum, asset) {
+          return assetSum + (asset.download_count || 0);
+        }, 0);
+      }, 0);
+      showDownloads(total);
+      try {
+        localStorage.setItem('fuelix_downloads', JSON.stringify({ total: total, at: Date.now() }));
+      } catch (e) {}
     })
     .catch(function () {});
 </script>
