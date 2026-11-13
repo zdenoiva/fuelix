@@ -97,11 +97,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _createBackup() async {
+    final password = await showDialog<String>(
+      context: context,
+      builder: (_) => _PasswordDialog(
+        title: context.t('backup.setPassword'),
+        note: context.t('backup.encryptedNote'),
+        confirm: true,
+      ),
+    );
+    if (password == null || !mounted) return;
     setState(() => _busy = true);
     try {
-      final file = await BackupService.createBackup();
-      await BackupService.saveFile(file, mimeType: 'application/json');
-      if (mounted) showSnack(context, context.t('backup.created'));
+      final file = await BackupService.createEncryptedBackup(password);
+      final saved = await BackupService.saveFile(
+        file,
+        mimeType: 'application/octet-stream',
+      );
+      if (saved && mounted) showSnack(context, context.t('backup.created'));
     } catch (_) {
       if (mounted) showSnack(context, context.t('backup.error'));
     } finally {
@@ -112,21 +124,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _restoreBackup() async {
     final picked = await FilePicker.pickFile(type: FileType.any);
     if (picked == null) return;
-    final bytes = await picked.readAsBytes();
+    final bytes = Uint8List.fromList(await picked.readAsBytes());
     if (!mounted) return;
-    final ok = await confirmDialog(
-      context,
-      title: context.t('backup.restore'),
-      message: context.t('backup.restoreConfirm'),
-      confirmLabel: context.t('common.yes'),
-    );
-    if (!ok || !mounted) return;
+
+    final encrypted = BackupService.isEncrypted(bytes);
+    String? password;
+    if (encrypted) {
+      password = await showDialog<String>(
+        context: context,
+        builder: (_) => _PasswordDialog(
+          title: context.t('backup.enterPassword'),
+          note: context.t('backup.encryptedNote'),
+        ),
+      );
+      if (password == null || !mounted) return;
+    } else {
+      final ok = await confirmDialog(
+        context,
+        title: context.t('backup.restore'),
+        message: context.t('backup.restoreConfirm'),
+        confirmLabel: context.t('common.yes'),
+      );
+      if (!ok || !mounted) return;
+    }
+
     setState(() => _busy = true);
     try {
-      await BackupService.restore(Uint8List.fromList(bytes));
+      if (encrypted) {
+        await BackupService.restoreEncrypted(bytes, password!);
+      } else {
+        await BackupService.restore(bytes);
+      }
       if (mounted) showSnack(context, context.t('backup.restored'));
     } catch (_) {
-      if (mounted) showSnack(context, context.t('backup.error'));
+      if (mounted) {
+        showSnack(
+          context,
+          encrypted
+              ? context.t('backup.wrongPassword')
+              : context.t('backup.error'),
+        );
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -155,6 +193,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: AppState.instance,
+      builder: (context, _) {
     final state = AppState.instance;
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
@@ -195,6 +236,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
               padding: const EdgeInsets.all(12),
               child: SegmentedButton<ThemeMode>(
                 showSelectedIcon: false,
+                style: SegmentedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 10,
+                  ),
+                  textStyle: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
                 segments: [
                   ButtonSegment(
                     value: ThemeMode.system,
@@ -337,6 +389,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ],
       ),
     );
+      },
+    );
   }
 
   Widget _group(String label) => Padding(
@@ -352,3 +406,109 @@ class _SettingsScreenState extends State<SettingsScreen> {
   );
 }
 
+
+class _PasswordDialog extends StatefulWidget {
+  const _PasswordDialog({
+    required this.title,
+    this.note,
+    this.confirm = false,
+  });
+
+  final String title;
+  final String? note;
+  final bool confirm;
+
+  @override
+  State<_PasswordDialog> createState() => _PasswordDialogState();
+}
+
+class _PasswordDialogState extends State<_PasswordDialog> {
+  final _first = TextEditingController();
+  final _second = TextEditingController();
+  String? _error;
+  bool _obscure = true;
+
+  @override
+  void dispose() {
+    _first.dispose();
+    _second.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final password = _first.text;
+    if (password.length < 6) {
+      setState(() => _error = context.t('backup.passwordMin'));
+      return;
+    }
+    if (widget.confirm && password != _second.text) {
+      setState(() => _error = context.t('backup.passwordMismatch'));
+      return;
+    }
+    Navigator.of(context).pop(password);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(widget.title),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: _first,
+            autofocus: true,
+            obscureText: _obscure,
+            decoration: InputDecoration(
+              labelText: context.t('backup.password'),
+              hintText: context.t('backup.passwordHint'),
+              suffixIcon: IconButton(
+                onPressed: () => setState(() => _obscure = !_obscure),
+                icon: Icon(
+                  _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                ),
+              ),
+            ),
+          ),
+          if (widget.confirm) ...[
+            const SizedBox(height: 10),
+            TextField(
+              controller: _second,
+              obscureText: _obscure,
+              decoration: InputDecoration(
+                labelText: context.t('backup.passwordConfirm'),
+              ),
+            ),
+          ],
+          if (_error != null) ...[
+            const SizedBox(height: 10),
+            Text(
+              _error!,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+          ],
+          if (widget.note != null) ...[
+            const SizedBox(height: 12),
+            Text(
+              widget.note!,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(context.t('common.cancel')),
+        ),
+        FilledButton(
+          onPressed: _submit,
+          child: Text(context.t('common.ok')),
+        ),
+      ],
+    );
+  }
+}

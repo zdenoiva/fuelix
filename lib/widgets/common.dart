@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../data/database.dart';
 import '../l10n/strings.dart';
+import 'glass.dart';
 
 class SectionCard extends StatelessWidget {
   const SectionCard({
@@ -16,16 +17,11 @@ class SectionCard extends StatelessWidget {
   final VoidCallback? onTap;
 
   @override
-  Widget build(BuildContext context) {
-    final content = Padding(padding: padding, child: child);
-    final card = Card(child: content);
-    if (onTap == null) return card;
-    return InkWell(
-      borderRadius: BorderRadius.circular(20),
-      onTap: onTap,
-      child: card,
-    );
-  }
+  Widget build(BuildContext context) => GlassSurface(
+    padding: padding,
+    onTap: onTap,
+    child: child,
+  );
 }
 
 class EmptyState extends StatelessWidget {

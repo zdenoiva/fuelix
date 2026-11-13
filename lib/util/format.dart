@@ -17,6 +17,17 @@ String formatMoney(
   return format.format(value);
 }
 
+String currencySymbol(String code) => switch (code.toUpperCase()) {
+  'EUR' => '€',
+  'CZK' => 'Kč',
+  'USD' => '\$',
+  'GBP' => '£',
+  'PLN' => 'zł',
+  'HUF' => 'Ft',
+  'CHF' => 'CHF',
+  _ => code,
+};
+
 String formatNumber(num value, {String language = 'sk', int decimals = 1}) {
   final format = NumberFormat.decimalPatternDigits(
     locale: localeCode(language),

@@ -12,11 +12,12 @@ import 'package:share_plus/share_plus.dart';
 import '../app_state.dart';
 import '../data/database.dart';
 import '../util/format.dart';
+import 'backup_crypto.dart';
 
 class BackupService {
   BackupService._();
 
-  static Future<File> createBackup() async {
+  static Future<Map<String, Object?>> _backupMap() async {
     final db = AppState.instance.db;
     final vehicles = await db.select(db.vehicles).get();
     final fills = await db.select(db.fillUps).get();
@@ -25,7 +26,7 @@ class BackupService {
     final categories = await db.select(db.expenseCategories).get();
     final stations = await db.select(db.stations).get();
 
-    final data = {
+    return {
       'app': 'fuelix',
       'schema': 1,
       'createdAt': DateTime.now().toUtc().toIso8601String(),
@@ -54,12 +55,47 @@ class BackupService {
           },
       ],
     };
+  }
 
+  static Future<File> createBackup() async {
+    final data = await _backupMap();
     final dir = await getTemporaryDirectory();
     final stamp = DateFormat('yyyyMMdd-HHmm').format(DateTime.now());
     final file = File(p.join(dir.path, 'fuelix-backup-$stamp.json'));
     await file.writeAsString(jsonEncode(data));
     return file;
+  }
+
+  /// Creates a password protected backup that can be restored on any phone.
+  static Future<File> createEncryptedBackup(String password) async {
+    final data = await _backupMap();
+    final text = await BackupCrypto.encrypt(data, password);
+    final dir = await getTemporaryDirectory();
+    final stamp = DateFormat('yyyyMMdd-HHmm').format(DateTime.now());
+    final file = File(p.join(dir.path, 'fuelix-$stamp.fuelix'));
+    await file.writeAsString(text);
+    return file;
+  }
+
+  /// True when [bytes] hold an encrypted Fuelix backup.
+  static bool isEncrypted(Uint8List bytes) {
+    try {
+      return BackupCrypto.isEncrypted(utf8.decode(bytes));
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static Future<int> restoreEncrypted(
+    Uint8List bytes,
+    String password,
+  ) async {
+    final text = utf8.decode(bytes);
+    if (!BackupCrypto.isEncrypted(text)) {
+      return restore(bytes);
+    }
+    final map = await BackupCrypto.decrypt(text, password);
+    return _restoreMap(map);
   }
 
   /// Keeps a rolling local copy of the last five daily backups. This protects
@@ -135,9 +171,9 @@ class BackupService {
         bytes: bytes,
         mimeType: mimeType ?? 'application/octet-stream',
       );
-      if (uri != null) return true;
+      return uri != null;
     } catch (_) {
-      // Fall through to sharing.
+      // The picker itself failed – offer the system share sheet instead.
     }
     await SharePlus.instance.share(
       ShareParams(files: [XFile(file.path, mimeType: mimeType)]),
@@ -149,6 +185,13 @@ class BackupService {
     final decoded = jsonDecode(utf8.decode(bytes));
     if (decoded is! Map) throw const FormatException('Invalid backup');
     final map = Map<String, dynamic>.from(decoded);
+    if (map['format'] == 'encrypted') {
+      throw const FormatException('Backup is encrypted');
+    }
+    return _restoreMap(map);
+  }
+
+  static Future<int> _restoreMap(Map<String, dynamic> map) async {
     if (map['app'] != 'fuelix') {
       throw const FormatException('Not a Fuelix backup');
     }
@@ -195,6 +238,7 @@ class BackupService {
             notes: Value(item['notes'] as String? ?? ''),
             externalId: Value(item['externalId'] as String?),
             isArchived: Value(item['isArchived'] as bool? ?? false),
+            isFavorite: Value(item['isFavorite'] as bool? ?? false),
             createdAt: Value(DateTime.parse(item['createdAt'] as String)),
           ),
         );
@@ -310,6 +354,7 @@ class BackupService {
     'notes': v.notes,
     'externalId': v.externalId,
     'isArchived': v.isArchived,
+    'isFavorite': v.isFavorite,
     'createdAt': v.createdAt.toIso8601String(),
   };
 

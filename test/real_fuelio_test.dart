@@ -8,6 +8,11 @@ import 'package:fuelix/services/fuelio_import.dart';
 /// parser or in the consumption maths show up immediately.
 void main() {
   final file = File('test/fixtures/fuelio_export.csv');
+  if (!file.existsSync()) {
+    // The real export is personal data and is therefore not committed.
+    test('real Fuelio export', () {}, skip: 'fixture not present');
+    return;
+  }
   final csv = file.readAsStringSync();
   final preview = FuelioImporter.parse(csv);
 

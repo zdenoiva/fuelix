@@ -5,6 +5,7 @@ import '../../data/database.dart';
 import '../../data/repository.dart';
 import '../../l10n/strings.dart';
 import '../../util/context_format.dart';
+import '../../util/format.dart';
 import '../../widgets/common.dart';
 import '../settings/settings_screen.dart';
 import '../vehicle/vehicle_detail_screen.dart';
@@ -201,7 +202,8 @@ class _VehicleCard extends StatelessWidget {
                           : context.roundMoney(stats.totalCost),
                       sub: stats?.costPerKm == null
                           ? null
-                          : '${context.num2(stats!.costPerKm!)} / ${context.t('common.km')}',
+                          : '${context.num2(stats!.costPerKm!)} '
+                                '${currencySymbol(AppState.instance.currency)} / ${context.t('common.km')}',
                     ),
                   ),
                 ],

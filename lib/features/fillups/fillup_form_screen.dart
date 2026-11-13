@@ -49,6 +49,7 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
   bool _locating = false;
 
   List<FillUp> _existing = const [];
+  List<String> _recentStations = const [];
   FillUp? _last;
 
   @override
@@ -95,10 +96,12 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
   Future<void> _loadContext() async {
     final fills = await _repo.fillUps(widget.vehicleId);
     final last = await _repo.lastFillUp(widget.vehicleId);
+    final recent = await _repo.recentStations(widget.vehicleId);
     if (!mounted) return;
     setState(() {
       _existing = fills;
       _last = last;
+      _recentStations = recent;
       if (widget.fillUp == null && _odometer.text.isEmpty && last != null) {
         _odometer.text = _trim(last.odometer);
       }
@@ -468,6 +471,7 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
                   TextFormField(
                     controller: _station,
                     textCapitalization: TextCapitalization.words,
+                    onChanged: (_) => setState(() {}),
                     decoration: InputDecoration(
                       labelText: context.t('fillup.station'),
                       hintText: context.t('fillup.stationHint'),
@@ -489,6 +493,25 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
                             ),
                     ),
                   ),
+                  if (_recentStations.isNotEmpty &&
+                      _station.text.trim().isEmpty) ...[
+                    const SizedBox(height: 4),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 6,
+                        children: [
+                          for (final name in _recentStations)
+                            ActionChip(
+                              label: Text(name),
+                              onPressed: () =>
+                                  setState(() => _station.text = name),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _note,

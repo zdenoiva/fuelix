@@ -7,6 +7,7 @@ import '../../data/repository.dart';
 import '../../l10n/strings.dart';
 import '../../theme.dart';
 import '../../util/context_format.dart';
+import '../../util/format.dart';
 import '../../widgets/common.dart';
 import '../expenses/expense_form_screen.dart';
 import '../expenses/expenses_tab.dart';
@@ -129,6 +130,21 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen>
       appBar: AppBar(
         title: Text(vehicle?.name ?? ''),
         actions: [
+          if (vehicle != null)
+            IconButton(
+              tooltip: context.t('garage.favorite'),
+              onPressed: () async {
+                if (vehicle.isFavorite) {
+                  await _repo.clearFavoriteVehicle();
+                } else {
+                  await _repo.setFavoriteVehicle(vehicle.id);
+                }
+                await _loadVehicle();
+              },
+              icon: Icon(
+                vehicle.isFavorite ? Icons.star : Icons.star_border,
+              ),
+            ),
           if (vehicle != null)
             IconButton(
               onPressed: _edit,
@@ -493,7 +509,8 @@ class _SummaryCard extends StatelessWidget {
                   label: context.t('stats.costPerKm'),
                   value: stats?.costPerKm == null
                       ? '–'
-                      : context.num2(stats!.costPerKm!),
+                      : '${context.num2(stats!.costPerKm!)} '
+                            '${currencySymbol(AppState.instance.currency)}',
                 ),
               ),
             ],

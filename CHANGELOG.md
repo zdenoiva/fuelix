@@ -3,6 +3,18 @@
 Všetky podstatné zmeny Fuelixu. Formát vychádza z [Keep a Changelog](https://keepachangelog.com/sk/1.1.0/),
 verzie sa riadia [SemVer](https://semver.org/lang/sk/).
 
+## [0.2.0] - 2026-11-13
+
+- Glass dizajn: jemný gradientový podklad, priehľadné karty s obrysom a nový vzhľad v svetlom aj tmavom režime.
+- Obľúbené auto: hviezdičkou v detaile vozidla ho pripneš do hlavného menu a appka sa pri štarte otvorí rovno na ňom.
+- Štatistiky: prepínanie áut, filter na rok alebo celé obdobie a nový graf prejdených kilometrov po mesiacoch.
+- Cena za kilometer už zobrazuje menu (napr. „0,27 € / km“).
+- Pri tankovaní sa pod poľom čerpačky ponúknu posledné tri použité stanice.
+- Záloha sa šifruje heslom (AES-GCM s kľúčom z PBKDF2), takže ju možno obnoviť na akomkoľvek telefóne; bez hesla sa nedá otvoriť.
+- Nastavenia reagujú okamžite – po zmene meny či témy sa hodnota v riadku zmení bez opätovného otvorenia obrazovky.
+- Voľba „Systém“ vo vzhľade je vycentrovaná a na jednom riadku.
+- Webová stránka už neobsahuje tabuľku ani údaje konkrétneho auta.
+
 ## [0.1.1] - 2026-11-12
 
 - Prehľad vozidla a dlaždice v garáži sa po pridaní tankovania alebo výdavku hneď prepočítajú.

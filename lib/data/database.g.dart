@@ -152,6 +152,21 @@ class $VehiclesTable extends Vehicles with TableInfo<$VehiclesTable, Vehicle> {
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _isFavoriteMeta = const VerificationMeta(
+    'isFavorite',
+  );
+  @override
+  late final GeneratedColumn<bool> isFavorite = GeneratedColumn<bool>(
+    'is_favorite',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_favorite" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -179,6 +194,7 @@ class $VehiclesTable extends Vehicles with TableInfo<$VehiclesTable, Vehicle> {
     notes,
     externalId,
     isArchived,
+    isFavorite,
     createdAt,
   ];
   @override
@@ -276,6 +292,12 @@ class $VehiclesTable extends Vehicles with TableInfo<$VehiclesTable, Vehicle> {
         isArchived.isAcceptableOrUnknown(data['is_archived']!, _isArchivedMeta),
       );
     }
+    if (data.containsKey('is_favorite')) {
+      context.handle(
+        _isFavoriteMeta,
+        isFavorite.isAcceptableOrUnknown(data['is_favorite']!, _isFavoriteMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -343,6 +365,10 @@ class $VehiclesTable extends Vehicles with TableInfo<$VehiclesTable, Vehicle> {
         DriftSqlType.bool,
         data['${effectivePrefix}is_archived'],
       )!,
+      isFavorite: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_favorite'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -370,6 +396,7 @@ class Vehicle extends DataClass implements Insertable<Vehicle> {
   final String notes;
   final String? externalId;
   final bool isArchived;
+  final bool isFavorite;
   final DateTime createdAt;
   const Vehicle({
     required this.id,
@@ -385,6 +412,7 @@ class Vehicle extends DataClass implements Insertable<Vehicle> {
     required this.notes,
     this.externalId,
     required this.isArchived,
+    required this.isFavorite,
     required this.createdAt,
   });
   @override
@@ -409,6 +437,7 @@ class Vehicle extends DataClass implements Insertable<Vehicle> {
       map['external_id'] = Variable<String>(externalId);
     }
     map['is_archived'] = Variable<bool>(isArchived);
+    map['is_favorite'] = Variable<bool>(isFavorite);
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -432,6 +461,7 @@ class Vehicle extends DataClass implements Insertable<Vehicle> {
           ? const Value.absent()
           : Value(externalId),
       isArchived: Value(isArchived),
+      isFavorite: Value(isFavorite),
       createdAt: Value(createdAt),
     );
   }
@@ -455,6 +485,7 @@ class Vehicle extends DataClass implements Insertable<Vehicle> {
       notes: serializer.fromJson<String>(json['notes']),
       externalId: serializer.fromJson<String?>(json['externalId']),
       isArchived: serializer.fromJson<bool>(json['isArchived']),
+      isFavorite: serializer.fromJson<bool>(json['isFavorite']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -475,6 +506,7 @@ class Vehicle extends DataClass implements Insertable<Vehicle> {
       'notes': serializer.toJson<String>(notes),
       'externalId': serializer.toJson<String?>(externalId),
       'isArchived': serializer.toJson<bool>(isArchived),
+      'isFavorite': serializer.toJson<bool>(isFavorite),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -493,6 +525,7 @@ class Vehicle extends DataClass implements Insertable<Vehicle> {
     String? notes,
     Value<String?> externalId = const Value.absent(),
     bool? isArchived,
+    bool? isFavorite,
     DateTime? createdAt,
   }) => Vehicle(
     id: id ?? this.id,
@@ -508,6 +541,7 @@ class Vehicle extends DataClass implements Insertable<Vehicle> {
     notes: notes ?? this.notes,
     externalId: externalId.present ? externalId.value : this.externalId,
     isArchived: isArchived ?? this.isArchived,
+    isFavorite: isFavorite ?? this.isFavorite,
     createdAt: createdAt ?? this.createdAt,
   );
   Vehicle copyWithCompanion(VehiclesCompanion data) {
@@ -533,6 +567,9 @@ class Vehicle extends DataClass implements Insertable<Vehicle> {
       isArchived: data.isArchived.present
           ? data.isArchived.value
           : this.isArchived,
+      isFavorite: data.isFavorite.present
+          ? data.isFavorite.value
+          : this.isFavorite,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -553,6 +590,7 @@ class Vehicle extends DataClass implements Insertable<Vehicle> {
           ..write('notes: $notes, ')
           ..write('externalId: $externalId, ')
           ..write('isArchived: $isArchived, ')
+          ..write('isFavorite: $isFavorite, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -573,6 +611,7 @@ class Vehicle extends DataClass implements Insertable<Vehicle> {
     notes,
     externalId,
     isArchived,
+    isFavorite,
     createdAt,
   );
   @override
@@ -592,6 +631,7 @@ class Vehicle extends DataClass implements Insertable<Vehicle> {
           other.notes == this.notes &&
           other.externalId == this.externalId &&
           other.isArchived == this.isArchived &&
+          other.isFavorite == this.isFavorite &&
           other.createdAt == this.createdAt);
 }
 
@@ -609,6 +649,7 @@ class VehiclesCompanion extends UpdateCompanion<Vehicle> {
   final Value<String> notes;
   final Value<String?> externalId;
   final Value<bool> isArchived;
+  final Value<bool> isFavorite;
   final Value<DateTime> createdAt;
   const VehiclesCompanion({
     this.id = const Value.absent(),
@@ -624,6 +665,7 @@ class VehiclesCompanion extends UpdateCompanion<Vehicle> {
     this.notes = const Value.absent(),
     this.externalId = const Value.absent(),
     this.isArchived = const Value.absent(),
+    this.isFavorite = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
   VehiclesCompanion.insert({
@@ -640,6 +682,7 @@ class VehiclesCompanion extends UpdateCompanion<Vehicle> {
     this.notes = const Value.absent(),
     this.externalId = const Value.absent(),
     this.isArchived = const Value.absent(),
+    this.isFavorite = const Value.absent(),
     this.createdAt = const Value.absent(),
   }) : name = Value(name);
   static Insertable<Vehicle> custom({
@@ -656,6 +699,7 @@ class VehiclesCompanion extends UpdateCompanion<Vehicle> {
     Expression<String>? notes,
     Expression<String>? externalId,
     Expression<bool>? isArchived,
+    Expression<bool>? isFavorite,
     Expression<DateTime>? createdAt,
   }) {
     return RawValuesInsertable({
@@ -672,6 +716,7 @@ class VehiclesCompanion extends UpdateCompanion<Vehicle> {
       if (notes != null) 'notes': notes,
       if (externalId != null) 'external_id': externalId,
       if (isArchived != null) 'is_archived': isArchived,
+      if (isFavorite != null) 'is_favorite': isFavorite,
       if (createdAt != null) 'created_at': createdAt,
     });
   }
@@ -690,6 +735,7 @@ class VehiclesCompanion extends UpdateCompanion<Vehicle> {
     Value<String>? notes,
     Value<String?>? externalId,
     Value<bool>? isArchived,
+    Value<bool>? isFavorite,
     Value<DateTime>? createdAt,
   }) {
     return VehiclesCompanion(
@@ -706,6 +752,7 @@ class VehiclesCompanion extends UpdateCompanion<Vehicle> {
       notes: notes ?? this.notes,
       externalId: externalId ?? this.externalId,
       isArchived: isArchived ?? this.isArchived,
+      isFavorite: isFavorite ?? this.isFavorite,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -752,6 +799,9 @@ class VehiclesCompanion extends UpdateCompanion<Vehicle> {
     if (isArchived.present) {
       map['is_archived'] = Variable<bool>(isArchived.value);
     }
+    if (isFavorite.present) {
+      map['is_favorite'] = Variable<bool>(isFavorite.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -774,6 +824,7 @@ class VehiclesCompanion extends UpdateCompanion<Vehicle> {
           ..write('notes: $notes, ')
           ..write('externalId: $externalId, ')
           ..write('isArchived: $isArchived, ')
+          ..write('isFavorite: $isFavorite, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -4560,6 +4611,7 @@ typedef $$VehiclesTableCreateCompanionBuilder = VehiclesCompanion Function({
   Value<String> notes,
   Value<String?> externalId,
   Value<bool> isArchived,
+  Value<bool> isFavorite,
   Value<DateTime> createdAt,
 });
 typedef $$VehiclesTableUpdateCompanionBuilder = VehiclesCompanion Function({
@@ -4576,6 +4628,7 @@ typedef $$VehiclesTableUpdateCompanionBuilder = VehiclesCompanion Function({
   Value<String> notes,
   Value<String?> externalId,
   Value<bool> isArchived,
+  Value<bool> isFavorite,
   Value<DateTime> createdAt,
 });
 
@@ -4711,6 +4764,11 @@ class $$VehiclesTableFilterComposer
 
   ColumnFilters<bool> get isArchived => $composableBuilder(
     column: $table.isArchived,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isFavorite => $composableBuilder(
+    column: $table.isFavorite,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4869,6 +4927,11 @@ class $$VehiclesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isFavorite => $composableBuilder(
+    column: $table.isFavorite,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -4928,6 +4991,11 @@ class $$VehiclesTableAnnotationComposer
 
   GeneratedColumn<bool> get isArchived => $composableBuilder(
     column: $table.isArchived,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isFavorite => $composableBuilder(
+    column: $table.isFavorite,
     builder: (column) => column,
   );
 
@@ -5055,6 +5123,7 @@ class $$VehiclesTableTableManager
                 Value<String> notes = const Value.absent(),
                 Value<String?> externalId = const Value.absent(),
                 Value<bool> isArchived = const Value.absent(),
+                Value<bool> isFavorite = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => VehiclesCompanion(
                 id: id,
@@ -5070,6 +5139,7 @@ class $$VehiclesTableTableManager
                 notes: notes,
                 externalId: externalId,
                 isArchived: isArchived,
+                isFavorite: isFavorite,
                 createdAt: createdAt,
               ),
           createCompanionCallback:
@@ -5087,6 +5157,7 @@ class $$VehiclesTableTableManager
                 Value<String> notes = const Value.absent(),
                 Value<String?> externalId = const Value.absent(),
                 Value<bool> isArchived = const Value.absent(),
+                Value<bool> isFavorite = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => VehiclesCompanion.insert(
                 id: id,
@@ -5102,6 +5173,7 @@ class $$VehiclesTableTableManager
                 notes: notes,
                 externalId: externalId,
                 isArchived: isArchived,
+                isFavorite: isFavorite,
                 createdAt: createdAt,
               ),
           withReferenceMapper: (p0) => p0

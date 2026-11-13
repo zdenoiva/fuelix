@@ -64,6 +64,33 @@ class FuelixRepository {
   Future<void> deleteVehicle(int id) =>
       (db.delete(db.vehicles)..where((v) => v.id.equals(id))).go();
 
+  Stream<Vehicle?> watchFavoriteVehicle() =>
+      (db.select(db.vehicles)
+            ..where((v) => v.isFavorite.equals(true))
+            ..limit(1))
+          .watchSingleOrNull();
+
+  Future<Vehicle?> favoriteVehicle() =>
+      (db.select(db.vehicles)
+            ..where((v) => v.isFavorite.equals(true))
+            ..limit(1))
+          .getSingleOrNull();
+
+  /// Marks [vehicleId] as the only favourite vehicle.
+  Future<void> setFavoriteVehicle(int vehicleId) async {
+    await db.transaction(() async {
+      await db.update(db.vehicles).write(
+        const VehiclesCompanion(isFavorite: Value(false)),
+      );
+      await (db.update(db.vehicles)..where((v) => v.id.equals(vehicleId)))
+          .write(const VehiclesCompanion(isFavorite: Value(true)));
+    });
+  }
+
+  Future<void> clearFavoriteVehicle() => db.update(db.vehicles).write(
+    const VehiclesCompanion(isFavorite: Value(false)),
+  );
+
   // ----------------------------------------------------------------- fillups
 
   Stream<List<FillUp>> watchFillUps(int vehicleId) {
@@ -98,6 +125,28 @@ class FuelixRepository {
           ..orderBy([(f) => OrderingTerm.desc(f.odometer)])
           ..limit(1))
         .getSingleOrNull();
+  }
+
+  /// Last distinct station names used for this vehicle, newest first.
+  Future<List<String>> recentStations(int vehicleId, {int limit = 3}) async {
+    final rows = await (db.select(db.fillUps)
+          ..where(
+            (f) =>
+                f.vehicleId.equals(vehicleId) &
+                f.stationName.isBiggerThanValue(''),
+          )
+          ..orderBy([(f) => OrderingTerm.desc(f.date)])
+          ..limit(40))
+        .get();
+    final seen = <String>{};
+    final names = <String>[];
+    for (final row in rows) {
+      final name = row.stationName.trim();
+      if (name.isEmpty || !seen.add(name)) continue;
+      names.add(name);
+      if (names.length >= limit) break;
+    }
+    return names;
   }
 
   Future<int> insertFillUp(FillUpsCompanion fillUp) =>
