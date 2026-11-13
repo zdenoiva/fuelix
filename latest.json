@@ -1,15 +1,19 @@
 {
-  "version": "0.1.1",
-  "versionCode": 101,
-  "apkUrl": "https://github.com/zdenoiva/fuelix/releases/download/v0.1.1/fuelix-0.1.1.apk",
-  "sha256": "4b5e37b389ed28c517aae63045c75b4978438c8108911ddae44926c1d6cc17dc",
-  "size": 87804601,
-  "publishedAt": "2026-11-12T18:36:39Z",
+  "version": "0.2.0",
+  "versionCode": 102,
+  "apkUrl": "https://github.com/zdenoiva/fuelix/releases/download/v0.2.0/fuelix-0.2.0.apk",
+  "sha256": "16a8b642d5ce506d6d68de8cabdd82b01e18cdbcc26952b2a6f6320e2297a701",
+  "size": 88181741,
+  "publishedAt": "2026-11-13T15:34:07Z",
   "changelog": [
-    "Prehľad vozidla a dlaždice v garáži sa po pridaní tankovania alebo výdavku hneď prepočítajú.",
-    "Cena za liter a celková suma sa už navzájom neprepisujú počas písania; klepnutie na číselné pole hodnotu vyberie na prepísanie.",
-    "Karta „Servis“ má kratší názov, aby sa zmestila na displeji telefóna.",
-    "Pri štarte sa raz denne vytvorí lokálna záloha a drží sa posledných päť.",
-    "Štatistiky skrývajú prázdny rozpad kategórií a nezobrazujú menu dvakrát."
+    "Glass dizajn: jemný gradientový podklad, priehľadné karty s obrysom a nový vzhľad v svetlom aj tmavom režime.",
+    "Obľúbené auto: hviezdičkou v detaile vozidla ho pripneš do hlavného menu a appka sa pri štarte otvorí rovno na ňom.",
+    "Štatistiky: prepínanie áut, filter na rok alebo celé obdobie a nový graf prejdených kilometrov po mesiacoch.",
+    "Cena za kilometer už zobrazuje menu (napr. „0,27 € / km“).",
+    "Pri tankovaní sa pod poľom čerpačky ponúknu posledné tri použité stanice.",
+    "Záloha sa šifruje heslom (AES-GCM s kľúčom z PBKDF2), takže ju možno obnoviť na akomkoľvek telefóne; bez hesla sa nedá otvoriť.",
+    "Nastavenia reagujú okamžite – po zmene meny či témy sa hodnota v riadku zmení bez opätovného otvorenia obrazovky.",
+    "Voľba „Systém“ vo vzhľade je vycentrovaná a na jednom riadku.",
+    "Webová stránka už neobsahuje tabuľku ani údaje konkrétneho auta."
   ]
 }
