@@ -1,13 +1,14 @@
 {
-  "version": "0.2.1",
-  "versionCode": 103,
-  "apkUrl": "https://github.com/zdenoiva/fuelix/releases/download/v0.2.1/fuelix-0.2.1.apk",
-  "sha256": "a218ca83aac42e4bc104b6f04d865ac166813d70b35fa4f00c8c8ca71d430dfa",
-  "size": 88460405,
-  "publishedAt": "2026-11-13T16:24:40Z",
+  "version": "0.3.0",
+  "versionCode": 104,
+  "apkUrl": "https://github.com/zdenoiva/fuelix/releases/download/v0.3.0/fuelix-0.3.0.apk",
+  "sha256": "2f83d9fee31ca6f215cf4b81ccc3afa67aba0fbb946c72bd9bffc90fedde4ea4",
+  "size": 89544031,
+  "publishedAt": "2026-11-13T17:03:45Z",
   "changelog": [
-    "Cena za liter a celková suma sa prepočítavajú obojsmerne pri každej zmene: úprava sumy prepíše cenu za liter, úprava ceny prepíše sumu a zmena litrov prepočíta cenu za liter.",
-    "Po zadaní litrov a ceny za liter sa celková suma doplní okamžite a už sa „nezasekne“ na prvej číslici.",
-    "Po vytvorení šifrovanej zálohy si vyberieš cieľ: uloženie do súboru (výber ponúkne OneDrive, Google Disk aj pamäť) alebo zdieľanie priamo do OneDrive či inej aplikácie."
+    "Heslo zálohy sa po prvom zadaní uloží do Android Keystore, takže ďalšie zálohy sa už na nič nepýtajú. V nastaveniach je nová položka „Heslo zálohy“ na jeho zmenu.",
+    "Cieľ zálohy si appka zapamätá: prvý raz vyberieš OneDrive, Google Disk alebo pamäť, odvtedy sa záloha zapisuje rovno tam bez akéhokoľvek dialógu. Cieľ sa dá kedykoľvek zmeniť alebo zabudnúť.",
+    "Widget na plochu „Fuelix – Natankovať“: jedno ťuknutie otvorí QR skener, po naskenovaní bločku sa rovno otvorí formulár tankovania s vyplnenými litrami, cenou a čerpačkou podľa GPS.",
+    "Staršie zálohy si ponechajú heslo, ktorým boli vytvorené; nové heslo platí pre nové zálohy."
   ]
 }
