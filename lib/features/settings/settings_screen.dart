@@ -1,13 +1,17 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../app_state.dart';
 import '../../l10n/strings.dart';
 import '../../services/backup_service.dart';
+import '../../services/backup_settings.dart';
 import '../../services/notifications.dart';
 import '../../services/update_service.dart';
 import '../../widgets/common.dart';
@@ -25,11 +29,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String _version = '';
   bool _checkingUpdate = false;
   bool _busy = false;
+  bool _hasPassword = false;
+  BackupTarget? _target;
 
   @override
   void initState() {
     super.initState();
     _loadVersion();
+    _loadBackupPrefs();
+  }
+
+  Future<void> _loadBackupPrefs() async {
+    final hasPassword = await BackupSettings.hasPassword();
+    final target = await BackupSettings.target();
+    if (!mounted) return;
+    setState(() {
+      _hasPassword = hasPassword;
+      _target = target;
+    });
   }
 
   Future<void> _loadVersion() async {
@@ -97,63 +114,67 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _createBackup() async {
-    final password = await showDialog<String>(
-      context: context,
-      builder: (_) => _PasswordDialog(
-        title: context.t('backup.setPassword'),
-        note: context.t('backup.encryptedNote'),
-        confirm: true,
-      ),
-    );
-    if (password == null || !mounted) return;
-    setState(() => _busy = true);
-    try {
-      final file = await BackupService.createEncryptedBackup(password);
-      if (!mounted) return;
-
-      final destination = await showModalBottomSheet<String>(
+    var password = await BackupSettings.password();
+    if (!mounted) return;
+    if (password == null || password.isEmpty) {
+      password = await showDialog<String>(
         context: context,
-        showDragHandle: true,
-        builder: (sheetContext) => SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    sheetContext.t('backup.where'),
-                    style: Theme.of(sheetContext).textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w700),
-                  ),
-                ),
-              ),
-              ListTile(
-                leading: const Icon(Icons.save_alt),
-                title: Text(sheetContext.t('backup.saveToFile')),
-                subtitle: Text(sheetContext.t('backup.saveToFileHint')),
-                onTap: () => Navigator.of(sheetContext).pop('file'),
-              ),
-              ListTile(
-                leading: const Icon(Icons.ios_share),
-                title: Text(sheetContext.t('backup.shareTo')),
-                subtitle: Text(sheetContext.t('backup.shareToHint')),
-                onTap: () => Navigator.of(sheetContext).pop('share'),
-              ),
-              const SizedBox(height: 8),
-            ],
-          ),
+        builder: (_) => _PasswordDialog(
+          title: context.t('backup.setPassword'),
+          note: context.t('backup.encryptedNote'),
+          confirm: true,
         ),
       );
+      if (password == null) return;
+      await BackupSettings.setPassword(password);
+      await _loadBackupPrefs();
+    }
+    if (!mounted) return;
 
-      if (destination == 'file') {
+    setState(() => _busy = true);
+    try {
+      final bytes = await BackupService.encryptedBackupBytes(password);
+
+      final target = await BackupSettings.target();
+      if (target != null) {
+        final written = await BackupTargetService.write(target.uri, bytes);
+        if (written) {
+          if (mounted) showSnack(context, context.t('backup.created'));
+          return;
+        }
+        await BackupSettings.clearTarget();
+        await _loadBackupPrefs();
+      }
+      if (!mounted) return;
+
+      final action = await _showBackupSheet();
+      if (action == null || !mounted) return;
+
+      if (action == 'remember') {
+        final picked = await BackupTargetService.pick();
+        if (picked == null) return;
+        final written = await BackupTargetService.write(picked.uri, bytes);
+        if (!written) {
+          if (mounted) showSnack(context, context.t('backup.writeFailed'));
+          return;
+        }
+        await BackupSettings.setTarget(picked);
+        await _loadBackupPrefs();
+        if (mounted) showSnack(context, context.t('backup.created'));
+        return;
+      }
+
+      final dir = await getTemporaryDirectory();
+      final file = File(p.join(dir.path, 'fuelix-backup.fuelix'));
+      await file.writeAsBytes(bytes);
+
+      if (action == 'file') {
         final saved = await BackupService.saveFile(
           file,
           mimeType: 'application/octet-stream',
         );
         if (saved && mounted) showSnack(context, context.t('backup.created'));
-      } else if (destination == 'share') {
+      } else if (action == 'share') {
         await BackupService.shareFile(
           file,
           mimeType: 'application/octet-stream',
@@ -165,6 +186,87 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+  }
+
+  Future<String?> _showBackupSheet() {
+    return showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  sheetContext.t('backup.where'),
+                  style: Theme.of(sheetContext).textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w700),
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.bookmark_add_outlined),
+              title: Text(sheetContext.t('backup.rememberTarget')),
+              subtitle: Text(sheetContext.t('backup.rememberTargetHint')),
+              onTap: () => Navigator.of(sheetContext).pop('remember'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.save_alt),
+              title: Text(sheetContext.t('backup.once')),
+              subtitle: Text(sheetContext.t('backup.saveToFileHint')),
+              onTap: () => Navigator.of(sheetContext).pop('file'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.ios_share),
+              title: Text(sheetContext.t('backup.shareTo')),
+              subtitle: Text(sheetContext.t('backup.shareToHint')),
+              onTap: () => Navigator.of(sheetContext).pop('share'),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _changePassword() async {
+    final value = await showDialog<String>(
+      context: context,
+      builder: (_) => _PasswordDialog(
+        title: context.t('backup.setPassword'),
+        note: context.t('backup.newPasswordNote'),
+        confirm: true,
+      ),
+    );
+    if (value == null) return;
+    await BackupSettings.setPassword(value);
+    await _loadBackupPrefs();
+    if (mounted) showSnack(context, context.t('common.saved'));
+  }
+
+  Future<void> _changeTarget() async {
+    final target = _target;
+    if (target != null) {
+      final ok = await confirmDialog(
+        context,
+        title: context.t('backup.target'),
+        message: context.t('backup.rememberTargetHint'),
+        confirmLabel: context.t('common.remove'),
+      );
+      if (!ok) return;
+      await BackupTargetService.release(target.uri);
+      await BackupSettings.clearTarget();
+      await _loadBackupPrefs();
+      if (mounted) showSnack(context, context.t('backup.targetCleared'));
+      return;
+    }
+    final picked = await BackupTargetService.pick();
+    if (picked == null) return;
+    await BackupSettings.setTarget(picked);
+    await _loadBackupPrefs();
   }
 
   Future<void> _restoreBackup() async {
@@ -348,6 +450,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   leading: const Icon(Icons.restore_outlined),
                   title: Text(context.t('backup.restore')),
                   onTap: _busy ? null : _restoreBackup,
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.lock_outline),
+                  title: Text(context.t('backup.password')),
+                  subtitle: Text(
+                    _hasPassword
+                        ? context.t('backup.passwordSet')
+                        : context.t('backup.passwordNotSet'),
+                  ),
+                  trailing: TextButton(
+                    onPressed: _changePassword,
+                    child: Text(context.t('backup.changePassword')),
+                  ),
+                  onTap: _changePassword,
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.folder_outlined),
+                  title: Text(context.t('backup.target')),
+                  subtitle: Text(
+                    _target?.name ?? context.t('backup.targetNone'),
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: _changeTarget,
                 ),
               ],
             ),

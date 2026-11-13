@@ -66,10 +66,16 @@ class BackupService {
     return file;
   }
 
-  /// Creates a password protected backup that can be restored on any phone.
-  static Future<File> createEncryptedBackup(String password) async {
+  /// Encrypted backup payload, used when writing to a remembered target.
+  static Future<Uint8List> encryptedBackupBytes(String password) async {
     final data = await _backupMap();
     final text = await BackupCrypto.encrypt(data, password);
+    return Uint8List.fromList(utf8.encode(text));
+  }
+
+  /// Creates a password protected backup that can be restored on any phone.
+  static Future<File> createEncryptedBackup(String password) async {
+    final text = utf8.decode(await encryptedBackupBytes(password));
     final dir = await getTemporaryDirectory();
     final stamp = DateFormat('yyyyMMdd-HHmm').format(DateTime.now());
     final file = File(p.join(dir.path, 'fuelix-$stamp.fuelix'));

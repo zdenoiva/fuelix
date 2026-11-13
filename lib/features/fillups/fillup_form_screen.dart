@@ -19,12 +19,18 @@ class FillUpFormScreen extends StatefulWidget {
     this.fillUp,
     this.draft,
     this.prefilledOdometer,
+    this.initialStation,
+    this.initialLatitude,
+    this.initialLongitude,
   });
 
   final int vehicleId;
   final FillUp? fillUp;
   final ReceiptData? draft;
   final double? prefilledOdometer;
+  final String? initialStation;
+  final double? initialLatitude;
+  final double? initialLongitude;
 
   @override
   State<FillUpFormScreen> createState() => _FillUpFormScreenState();
@@ -77,13 +83,16 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
           : (draft?.pricePerLiter == null ? '' : _trim(draft!.pricePerLiter!)),
     );
     _station = TextEditingController(
-      text: f?.stationName ?? draft?.stationName ?? '',
+      text: f?.stationName ??
+          draft?.stationName ??
+          widget.initialStation ??
+          '',
     );
     _note = TextEditingController(text: f?.note ?? '');
     _fullTank = f?.isFull ?? true;
     _missed = f?.isMissed ?? false;
-    _latitude = f?.latitude;
-    _longitude = f?.longitude;
+    _latitude = f?.latitude ?? widget.initialLatitude;
+    _longitude = f?.longitude ?? widget.initialLongitude;
     _loadContext();
   }
 

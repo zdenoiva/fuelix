@@ -31,6 +31,18 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <receiver
+            android:name=".FuelixWidgetProvider"
+            android:exported="true"
+            android:label="Fuelix">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/fuelix_widget_info" />
+        </receiver>
+
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />

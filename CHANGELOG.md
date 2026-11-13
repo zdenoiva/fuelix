@@ -3,6 +3,13 @@
 Všetky podstatné zmeny Fuelixu. Formát vychádza z [Keep a Changelog](https://keepachangelog.com/sk/1.1.0/),
 verzie sa riadia [SemVer](https://semver.org/lang/sk/).
 
+## [0.3.0] - 2026-11-13
+
+- Heslo zálohy sa po prvom zadaní uloží do Android Keystore, takže ďalšie zálohy sa už na nič nepýtajú. V nastaveniach je nová položka „Heslo zálohy“ na jeho zmenu.
+- Cieľ zálohy si appka zapamätá: prvý raz vyberieš OneDrive, Google Disk alebo pamäť, odvtedy sa záloha zapisuje rovno tam bez akéhokoľvek dialógu. Cieľ sa dá kedykoľvek zmeniť alebo zabudnúť.
+- Widget na plochu „Fuelix – Natankovať“: jedno ťuknutie otvorí QR skener, po naskenovaní bločku sa rovno otvorí formulár tankovania s vyplnenými litrami, cenou a čerpačkou podľa GPS.
+- Staršie zálohy si ponechajú heslo, ktorým boli vytvorené; nové heslo platí pre nové zálohy.
+
 ## [0.2.1] - 2026-11-13
 
 - Cena za liter a celková suma sa prepočítavajú obojsmerne pri každej zmene: úprava sumy prepíše cenu za liter, úprava ceny prepíše sumu a zmena litrov prepočíta cenu za liter.
