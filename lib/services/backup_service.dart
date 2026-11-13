@@ -161,6 +161,14 @@ class BackupService {
     return file;
   }
 
+  /// Opens the system share sheet; the user can pick OneDrive or any other
+  /// app that accepts the backup file.
+  static Future<void> shareFile(File file, {String? mimeType}) {
+    return SharePlus.instance.share(
+      ShareParams(files: [XFile(file.path, mimeType: mimeType)]),
+    );
+  }
+
   /// Saves [file] through the system file picker, falling back to sharing.
   static Future<bool> saveFile(File file, {String? mimeType}) async {
     final bytes = await file.readAsBytes();

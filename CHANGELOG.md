@@ -3,6 +3,12 @@
 Všetky podstatné zmeny Fuelixu. Formát vychádza z [Keep a Changelog](https://keepachangelog.com/sk/1.1.0/),
 verzie sa riadia [SemVer](https://semver.org/lang/sk/).
 
+## [0.2.1] - 2026-11-13
+
+- Cena za liter a celková suma sa prepočítavajú obojsmerne pri každej zmene: úprava sumy prepíše cenu za liter, úprava ceny prepíše sumu a zmena litrov prepočíta cenu za liter.
+- Po zadaní litrov a ceny za liter sa celková suma doplní okamžite a už sa „nezasekne“ na prvej číslici.
+- Po vytvorení šifrovanej zálohy si vyberieš cieľ: uloženie do súboru (výber ponúkne OneDrive, Google Disk aj pamäť) alebo zdieľanie priamo do OneDrive či inej aplikácie.
+
 ## [0.2.0] - 2026-11-13
 
 - Glass dizajn: jemný gradientový podklad, priehľadné karty s obrysom a nový vzhľad v svetlom aj tmavom režime.

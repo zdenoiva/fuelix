@@ -124,6 +124,8 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
     ]) {
       controller.dispose();
     }
+    _totalFocus.dispose();
+    _priceFocus.dispose();
     super.dispose();
   }
 
@@ -135,25 +137,56 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
 
   double? get _totalValue => double.tryParse(_total.text.replaceAll(',', '.'));
 
-  /// The total is only derived from the unit price until the user types a
-  /// total of their own; after that it is never overwritten while typing.
-  bool _totalTouched = false;
+  final FocusNode _totalFocus = FocusNode();
+  final FocusNode _priceFocus = FocusNode();
 
+  /// Formats a derived value with the decimal separator of the app language so
+  /// the auto-filled fields look like the numbers the user types.
+  String _formatDecimal(double value, int decimals) {
+    final text = value.toStringAsFixed(decimals);
+    return context.lang == 'en' ? text : text.replaceAll('.', ',');
+  }
+
+  /// User edits the total → recompute the price per litre, but never touch the
+  /// field that currently has focus.
   void _syncFromTotal() {
     final liters = _litersValue;
     final total = _totalValue;
-    _totalTouched = true;
     if (liters == null || liters <= 0 || total == null) return;
-    _pricePerLiter.text = (total / liters).toStringAsFixed(3);
+    if (!_priceFocus.hasFocus) {
+      _pricePerLiter.text = _formatDecimal(total / liters, 3);
+    }
     setState(() {});
   }
 
+  /// User edits the price per litre → recompute the total.
   void _syncFromPrice() {
     final liters = _litersValue;
     final price = double.tryParse(_pricePerLiter.text.replaceAll(',', '.'));
     if (liters == null || liters <= 0 || price == null) return;
-    if (_totalTouched && _totalValue != null) return;
-    _total.text = (price * liters).toStringAsFixed(2);
+    if (!_totalFocus.hasFocus) {
+      _total.text = _formatDecimal(price * liters, 2);
+    }
+    setState(() {});
+  }
+
+  /// Changing litres keeps the total and recalculates the unit price.
+  void _syncAfterLitersChanged() {
+    final liters = _litersValue;
+    if (liters == null || liters <= 0) return;
+    final total = _totalValue;
+    if (total != null && total > 0) {
+      if (!_priceFocus.hasFocus) {
+        _pricePerLiter.text = _formatDecimal(total / liters, 3);
+      }
+    } else {
+      final price = double.tryParse(
+        _pricePerLiter.text.replaceAll(',', '.'),
+      );
+      if (price != null && !_totalFocus.hasFocus) {
+        _total.text = _formatDecimal(price * liters, 2);
+      }
+    }
     setState(() {});
   }
 
@@ -398,14 +431,7 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
                     ],
                     onTap: () => _selectAll(_liters),
-                    onChanged: (_) {
-                      if (_totalTouched) {
-                        _syncFromTotal();
-                      } else {
-                        _syncFromPrice();
-                      }
-                      setState(() {});
-                    },
+                    onChanged: (_) => _syncAfterLitersChanged(),
                     decoration: InputDecoration(
                       labelText: context.t('fillup.liters'),
                       hintText: context.t('fillup.litersHint'),
@@ -430,6 +456,7 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
                 Expanded(
                   child: TextFormField(
                     controller: _total,
+                    focusNode: _totalFocus,
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),
@@ -448,6 +475,7 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
                 Expanded(
                   child: TextFormField(
                     controller: _pricePerLiter,
+                    focusNode: _priceFocus,
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),

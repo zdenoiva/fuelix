@@ -109,11 +109,57 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() => _busy = true);
     try {
       final file = await BackupService.createEncryptedBackup(password);
-      final saved = await BackupService.saveFile(
-        file,
-        mimeType: 'application/octet-stream',
+      if (!mounted) return;
+
+      final destination = await showModalBottomSheet<String>(
+        context: context,
+        showDragHandle: true,
+        builder: (sheetContext) => SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    sheetContext.t('backup.where'),
+                    style: Theme.of(sheetContext).textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.save_alt),
+                title: Text(sheetContext.t('backup.saveToFile')),
+                subtitle: Text(sheetContext.t('backup.saveToFileHint')),
+                onTap: () => Navigator.of(sheetContext).pop('file'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.ios_share),
+                title: Text(sheetContext.t('backup.shareTo')),
+                subtitle: Text(sheetContext.t('backup.shareToHint')),
+                onTap: () => Navigator.of(sheetContext).pop('share'),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
       );
-      if (saved && mounted) showSnack(context, context.t('backup.created'));
+
+      if (destination == 'file') {
+        final saved = await BackupService.saveFile(
+          file,
+          mimeType: 'application/octet-stream',
+        );
+        if (saved && mounted) showSnack(context, context.t('backup.created'));
+      } else if (destination == 'share') {
+        await BackupService.shareFile(
+          file,
+          mimeType: 'application/octet-stream',
+        );
+        if (mounted) showSnack(context, context.t('backup.created'));
+      }
     } catch (_) {
       if (mounted) showSnack(context, context.t('backup.error'));
     } finally {
