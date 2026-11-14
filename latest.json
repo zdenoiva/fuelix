@@ -1,14 +1,15 @@
 {
-  "version": "0.3.0",
-  "versionCode": 104,
-  "apkUrl": "https://github.com/zdenoiva/fuelix/releases/download/v0.3.0/fuelix-0.3.0.apk",
-  "sha256": "2f83d9fee31ca6f215cf4b81ccc3afa67aba0fbb946c72bd9bffc90fedde4ea4",
-  "size": 89544031,
-  "publishedAt": "2026-11-13T17:03:45Z",
+  "version": "0.3.1",
+  "versionCode": 105,
+  "apkUrl": "https://github.com/zdenoiva/fuelix/releases/download/v0.3.1/fuelix-0.3.1.apk",
+  "sha256": "13c9c26ab7ad39d36052d33cf2d6bd2821b61c8d2b6be14dca200b7666219800",
+  "size": 121183022,
+  "publishedAt": "2026-11-14T09:02:23Z",
   "changelog": [
-    "Heslo zálohy sa po prvom zadaní uloží do Android Keystore, takže ďalšie zálohy sa už na nič nepýtajú. V nastaveniach je nová položka „Heslo zálohy“ na jeho zmenu.",
-    "Cieľ zálohy si appka zapamätá: prvý raz vyberieš OneDrive, Google Disk alebo pamäť, odvtedy sa záloha zapisuje rovno tam bez akéhokoľvek dialógu. Cieľ sa dá kedykoľvek zmeniť alebo zabudnúť.",
-    "Widget na plochu „Fuelix – Natankovať“: jedno ťuknutie otvorí QR skener, po naskenovaní bločku sa rovno otvorí formulár tankovania s vyplnenými litrami, cenou a čerpačkou podľa GPS.",
-    "Staršie zálohy si ponechajú heslo, ktorým boli vytvorené; nové heslo platí pre nové zálohy."
+    "Bloček sa dá načítať aj vtedy, keď QR kód neobsahuje ceny (napr. Shell): v skeneri je tlačidlo „Odfotiť bloček“ a „Z galérie“.",
+    "Fotka bločku sa číta priamo v telefóne (Google ML Kit) – litre, cena za liter, celková suma a značka čerpačky.",
+    "Celková suma sa vyberá inteligentne: ak OCR prehodí stĺpce a „Spolu“ je medzisúčet, použije sa suma, ktorá sedí na litre × cena za liter.",
+    "Formulár tankovania sa z widgetu otvorí hneď; čerpačka podľa GPS sa doplní na pozadí, keď súradnice dorazia.",
+    "Opravená chyba s časovou zónou pri načítaní pripomienok."
   ]
 }
