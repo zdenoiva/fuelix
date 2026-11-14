@@ -1,14 +1,14 @@
 {
-  "version": "0.6.0",
-  "versionCode": 110,
-  "apkUrl": "https://github.com/zdenoiva/fuelix/releases/download/v0.6.0/fuelix-0.6.0.apk",
-  "sha256": "742912573181a1f35ecde8a76322c42a7620d747b87b83a3f7116280308af008",
-  "size": 121430290,
-  "publishedAt": "2026-11-14T11:52:13Z",
+  "version": "0.6.1",
+  "versionCode": 111,
+  "apkUrl": "https://github.com/zdenoiva/fuelix/releases/download/v0.6.1/fuelix-0.6.1.apk",
+  "sha256": "225cb6aca008f85b9eb616436de99d73263a3641123b077e04f18e6d43aa9096",
+  "size": 121528590,
+  "publishedAt": "2026-11-14T13:16:22Z",
   "changelog": [
-    "Výdavky sa dajú načítať z bločku: QR alebo fotka vyplní názov (obchod/prevádzku), sumu a dátum.",
-    "Z eKasa bločku sa do poznámky vypíšu všetky položky s množstvom, jednotkovou cenou a súčtom.",
-    "Tachometer pri výdavku je nepovinný (v poli je vyznačené „nepovinné“).",
-    "Dátum tankovania aj výdavku sa berie z bločku — z eKasy aj z fotky (OCR)."
+    "Opravené čítanie cien z eKasy: pole `price` je celková cena riadku, nie jednotková. Z 46,19 l a 75,01 € sa teraz správne počíta 1,624 €/l a poznámka výdavku ukáže 46,2× 1,62 € = 75,01 €.",
+    "Pri odchode z rozpísaného tankovania alebo výdavku sa appka spýta, či údaje zahodiť.",
+    "Ak bola appka na pozadí dlhšie ako 15 minút, po návrate sa otvorí domovská obrazovka namiesto rozpracovanej stránky.",
+    "Dátum z bločku sa doplní aj vtedy, keď sa bloček naskenuje až vo formulári."
   ]
 }
