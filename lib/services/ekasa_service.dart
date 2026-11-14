@@ -16,13 +16,14 @@ class EkasaService {
   static const String endpoint =
       'https://ekasa.financnasprava.sk/mdu/api/v1/opd/receipt/find';
 
-  final Map<String, ReceiptData?> _cache = {};
+  final Map<String, EkasaReceipt?> _cache = {};
 
   /// Extracts an eKasa UID from arbitrary QR text.
   static String? extractUid(String raw) => ReceiptParser.extractUid(raw);
 
-  /// Tries the UID as printed and the common 0/O mix-up.
-  Future<ReceiptData?> lookup(String uid) async {
+  /// Tries the UID as printed and the common 0/O mix-up. Returns the raw
+  /// receipt so the caller can build a fill-up or an expense draft.
+  Future<EkasaReceipt?> lookup(String uid) async {
     final normalized = uid.toUpperCase();
     if (_cache.containsKey(normalized)) return _cache[normalized];
 
@@ -35,9 +36,8 @@ class EkasaService {
     for (final candidate in candidates) {
       final receipt = await _find(candidate);
       if (receipt != null) {
-        final data = receipt.toReceiptData();
-        _cache[normalized] = data;
-        return data;
+        _cache[normalized] = receipt;
+        return receipt;
       }
     }
 
@@ -188,9 +188,41 @@ class EkasaReceipt {
       pricePerLiter: fuel.unitPrice,
       total: total,
       stationName: station,
+      merchant: _merchantName(),
       date: issueDate,
+      items: _lines(),
       raw: 'ekasa:$receiptId',
     );
+  }
+
+  /// Expense draft: no fuel needed, but every item ends up in the note.
+  ReceiptData toExpenseData() {
+    return ReceiptData(
+      total: totalPrice,
+      stationName: _stationName(),
+      merchant: _merchantName(),
+      date: issueDate,
+      items: _lines(),
+      raw: 'ekasa:$receiptId',
+    );
+  }
+
+  List<ReceiptLine> _lines() => [
+    for (final item in items)
+      ReceiptLine(
+        name: item.name,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        total: item.total,
+      ),
+  ];
+
+  String? _merchantName() {
+    final unit = unitName?.trim();
+    if (unit != null && unit.isNotEmpty) return unit;
+    final organization = organizationName?.trim();
+    if (organization != null && organization.isNotEmpty) return organization;
+    return null;
   }
 
   /// Only the operating unit is a station. The organisation is the company

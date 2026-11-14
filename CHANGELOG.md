@@ -3,6 +3,13 @@
 Všetky podstatné zmeny Fuelixu. Formát vychádza z [Keep a Changelog](https://keepachangelog.com/sk/1.1.0/),
 verzie sa riadia [SemVer](https://semver.org/lang/sk/).
 
+## [0.6.0] - 2026-11-14
+
+- Výdavky sa dajú načítať z bločku: QR alebo fotka vyplní názov (obchod/prevádzku), sumu a dátum.
+- Z eKasa bločku sa do poznámky vypíšu všetky položky s množstvom, jednotkovou cenou a súčtom.
+- Tachometer pri výdavku je nepovinný (v poli je vyznačené „nepovinné“).
+- Dátum tankovania aj výdavku sa berie z bločku — z eKasy aj z fotky (OCR).
+
 ## [0.5.1] - 2026-11-14
 
 - Miesto tankovania z GPS už obsahuje aj obec: z „Shell“ sa doplní „Shell Prievidza“ (reverse geocoding). Názvy, ktoré obec už majú alebo obsahujú pobočku (napr. „Shell PD“), zostanú bez zmeny.

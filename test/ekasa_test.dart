@@ -94,6 +94,21 @@ void main() {
       expect(EkasaReceipt.fromJson(json).toReceiptData(), isNull);
     });
 
+    test('builds an expense draft with item lines', () {
+      final json = fuelReceipt();
+      json['items'] = [
+        {'name': 'Bageta', 'quantity': 2, 'price': 2.5},
+        {'name': 'Káva', 'quantity': 1, 'price': 1.2},
+      ];
+      final data = EkasaReceipt.fromJson(json).toExpenseData();
+      expect(data.total, closeTo(75.01, 0.001));
+      expect(data.items, hasLength(2));
+      expect(data.items.first.name, 'Bageta');
+      expect(data.items.first.total, closeTo(5.0, 0.001));
+      expect(data.merchant, '8201 - ČS Shell Prievidza');
+      expect(data.date, DateTime(2026, 11, 14, 9, 9, 44));
+    });
+
     test('falls back to the brand when the unit has no name', () {
       final json = fuelReceipt();
       json['unit'] = {'name': null};

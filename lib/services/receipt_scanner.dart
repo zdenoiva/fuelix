@@ -1,6 +1,20 @@
 import 'dart:convert';
 
 /// Values read from a receipt QR code or receipt text.
+class ReceiptLine {
+  const ReceiptLine({
+    required this.name,
+    required this.quantity,
+    required this.unitPrice,
+    required this.total,
+  });
+
+  final String name;
+  final double quantity;
+  final double unitPrice;
+  final double total;
+}
+
 class ReceiptData {
   const ReceiptData({
     this.liters,
@@ -11,6 +25,8 @@ class ReceiptData {
     this.requiresOnline = false,
     this.receiptId,
     this.date,
+    this.merchant,
+    this.items = const [],
   });
 
   final double? liters;
@@ -22,6 +38,12 @@ class ReceiptData {
   /// eKasa UID (for example `O-007EE…`) when the QR code carries one.
   final String? receiptId;
   final DateTime? date;
+
+  /// Business or operating unit printed on the receipt.
+  final String? merchant;
+
+  /// Individual receipt lines, when the source provides them (eKasa).
+  final List<ReceiptLine> items;
 
   /// True when the QR only carries an eKasa receipt id that would have to be
   /// resolved through the financial administration API.
@@ -256,7 +278,30 @@ class ReceiptParser {
       total: resolved.$2,
       pricePerLiter: resolved.$3,
       stationName: station,
+      merchant: station,
+      date: _parseReceiptDate(text),
       raw: text,
+    );
+  }
+
+  /// Reads "14.11.2026 09:09" / "14. 11. 2026" from OCR text.
+  static DateTime? _parseReceiptDate(String text) {
+    final match = RegExp(
+      r'(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})(?:\s+(\d{1,2}):(\d{2}))?',
+    ).firstMatch(text);
+    if (match == null) return null;
+    final day = int.tryParse(match.group(1)!);
+    final month = int.tryParse(match.group(2)!);
+    final year = int.tryParse(match.group(3)!);
+    if (day == null || month == null || year == null) return null;
+    if (day < 1 || day > 31 || month < 1 || month > 12) return null;
+    if (year < 2000 || year > 2100) return null;
+    return DateTime(
+      year,
+      month,
+      day,
+      int.tryParse(match.group(4) ?? '') ?? 0,
+      int.tryParse(match.group(5) ?? '') ?? 0,
     );
   }
 

@@ -34,6 +34,7 @@ MasterCard:                              75.01 EUR
     expect(data.pricePerLiter, closeTo(1.624, 0.0001));
     expect(data.total, closeTo(75.01, 0.001));
     expect(data.stationName, 'Shell');
+    expect(data.date, DateTime(2026, 11, 14, 9, 9));
   });
 
   // ML Kit reorders receipt columns: "Cena celkom:" ends up above a totally

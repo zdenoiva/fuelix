@@ -7,8 +7,12 @@ import '../../services/ekasa_service.dart';
 import '../../services/receipt_ocr.dart';
 import '../../services/receipt_scanner.dart';
 
+enum ReceiptScanMode { fillUp, expense }
+
 class ReceiptScannerScreen extends StatefulWidget {
-  const ReceiptScannerScreen({super.key});
+  const ReceiptScannerScreen({super.key, this.mode = ReceiptScanMode.fillUp});
+
+  final ReceiptScanMode mode;
 
   @override
   State<ReceiptScannerScreen> createState() => _ReceiptScannerScreenState();
@@ -47,7 +51,7 @@ class _ReceiptScannerScreenState extends State<ReceiptScannerScreen> {
         }
         continue;
       }
-      if (data.hasValues) {
+      if (_acceptable(data)) {
         _handled = true;
         Navigator.of(context).pop(data);
         return;
@@ -66,6 +70,10 @@ class _ReceiptScannerScreenState extends State<ReceiptScannerScreen> {
     }
   }
 
+  bool _acceptable(ReceiptData data) => widget.mode == ReceiptScanMode.expense
+      ? data.total != null
+      : data.hasValues;
+
   Future<void> _resolveUid(String uid, String raw) async {
     setState(() {
       _processing = true;
@@ -74,10 +82,15 @@ class _ReceiptScannerScreenState extends State<ReceiptScannerScreen> {
     final receipt = await EkasaService.instance.lookup(uid);
     if (!mounted) return;
 
-    if (receipt != null && receipt.hasValues) {
-      _handled = true;
-      Navigator.of(context).pop(receipt);
-      return;
+    if (receipt != null) {
+      final data = widget.mode == ReceiptScanMode.expense
+          ? receipt.toExpenseData()
+          : receipt.toReceiptData();
+      if (data != null && _acceptable(data)) {
+        _handled = true;
+        Navigator.of(context).pop(data);
+        return;
+      }
     }
 
     setState(() {
@@ -109,7 +122,7 @@ class _ReceiptScannerScreenState extends State<ReceiptScannerScreen> {
     final data = await ReceiptOcr.fromImagePath(photo.path);
     if (!mounted) return;
 
-    if (data != null && data.hasValues) {
+    if (data != null && _acceptable(data)) {
       Navigator.of(context).pop(data);
       return;
     }

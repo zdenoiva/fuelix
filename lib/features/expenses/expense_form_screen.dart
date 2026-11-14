@@ -5,8 +5,10 @@ import 'package:flutter/services.dart';
 import '../../app_state.dart';
 import '../../data/database.dart';
 import '../../l10n/strings.dart';
+import '../../services/receipt_scanner.dart';
 import '../../util/context_format.dart';
 import '../../widgets/common.dart';
+import '../fillups/receipt_scanner_screen.dart';
 
 class ExpenseFormScreen extends StatefulWidget {
   const ExpenseFormScreen({
@@ -77,6 +79,45 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
     super.dispose();
   }
 
+  Future<void> _scanReceipt() async {
+    final data = await Navigator.of(context).push<ReceiptData>(
+      MaterialPageRoute<ReceiptData>(
+        builder: (_) =>
+            const ReceiptScannerScreen(mode: ReceiptScanMode.expense),
+      ),
+    );
+    if (data == null || !mounted) return;
+
+    setState(() {
+      final merchant = data.merchant?.trim();
+      if (merchant != null && merchant.isNotEmpty) {
+        _title.text = merchant;
+      } else if (data.items.isNotEmpty) {
+        _title.text = data.items.first.name;
+      }
+      if (data.total != null && data.total! > 0) {
+        _amount.text = data.total!.toStringAsFixed(2);
+      }
+      if (data.date != null) _date = data.date!;
+      if (data.items.isNotEmpty && _note.text.trim().isEmpty) {
+        _note.text = data.items.map(_itemLine).join('\n');
+      }
+    });
+    if (!_categories.any((category) => category.key == _category) &&
+        _categories.isNotEmpty) {
+      _category = _categories.first.key;
+    }
+    showSnack(context, context.t('qr.scanned'));
+  }
+
+  String _itemLine(ReceiptLine item) {
+    final quantity = item.quantity == item.quantity.roundToDouble()
+        ? item.quantity.toStringAsFixed(0)
+        : context.num1(item.quantity);
+    return '${item.name}  $quantity×  ${context.money(item.unitPrice)}'
+        '  = ${context.money(item.total)}';
+  }
+
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
       context: context,
@@ -122,6 +163,13 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
         title: Text(
           context.t(widget.expense == null ? 'expense.add' : 'expense.edit'),
         ),
+        actions: [
+          IconButton(
+            tooltip: context.t('expense.scan'),
+            onPressed: _scanReceipt,
+            icon: const Icon(Icons.qr_code_scanner),
+          ),
+        ],
       ),
       body: Form(
         key: _formKey,
@@ -177,6 +225,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                     ],
                     decoration: InputDecoration(
                       labelText: context.t('common.odometer'),
+                      hintText: context.t('common.optional'),
                       suffixText: 'km',
                     ),
                   ),
