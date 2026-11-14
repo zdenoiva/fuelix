@@ -3,6 +3,12 @@
 Všetky podstatné zmeny Fuelixu. Formát vychádza z [Keep a Changelog](https://keepachangelog.com/sk/1.1.0/),
 verzie sa riadia [SemVer](https://semver.org/lang/sk/).
 
+## [0.5.1] - 2026-11-14
+
+- Miesto tankovania z GPS už obsahuje aj obec: z „Shell“ sa doplní „Shell Prievidza“ (reverse geocoding). Názvy, ktoré obec už majú alebo obsahujú pobočku (napr. „Shell PD“), zostanú bez zmeny.
+- Geolokácia má časový limit, takže tlačidlo „moja poloha“ nikdy nezostane visieť; hláška pri neúspechu je jasnejšia.
+- Widget má nové rozloženie: hore Fuelix, v strede QR ikona, dole TANKUJ.
+
 ## [0.5.0] - 2026-11-14
 
 - Čerpačka z eKasy: keď doklad neuvádza prevádzku, appka rozpozná značku z prevádzkovateľa (HAPPE → Shell) a v poli stanice zobrazí farebnú ikonku značky (Shell, Slovnaft, OMV, MOL, Jurki, Tesco, Orlen, Benzina, EuroOil, Lukoil).

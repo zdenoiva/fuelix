@@ -98,15 +98,29 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
     _loadContext();
     widget.locationFuture?.then((result) {
       if (!mounted || result == null) return;
-      setState(() {
-        _latitude ??= result.latitude;
-        _longitude ??= result.longitude;
-        final name = result.stationName;
-        if (_station.text.trim().isEmpty && name != null && name.isNotEmpty) {
-          _station.text = name;
-        }
-      });
+      setState(() => _applyLocation(result));
     });
+  }
+
+  /// Fills the coordinates and enriches a bare brand with the city from GPS
+  /// ("Shell" → "Shell Prievidza"). A name that already has a city is kept.
+  void _applyLocation(LocationResult result) {
+    _latitude ??= result.latitude;
+    _longitude ??= result.longitude;
+
+    final current = _station.text.trim();
+    final name = result.stationName;
+    final city = result.city;
+
+    if (current.isEmpty) {
+      if (name != null && name.isNotEmpty) _station.text = name;
+      return;
+    }
+    if (city == null || city.isEmpty) return;
+    final lowerCurrent = current.toLowerCase();
+    if (lowerCurrent.contains(city.toLowerCase())) return;
+    if (current.contains(' ')) return;
+    _station.text = '$current $city';
   }
 
   String _trim(double value) {
@@ -254,15 +268,9 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
       showSnack(context, context.t('fillup.locationDenied'));
       return;
     }
-    setState(() {
-      _latitude = result.latitude;
-      _longitude = result.longitude;
-      if (result.stationName != null && _station.text.isEmpty) {
-        _station.text = result.stationName!;
-      }
-    });
-    if (result.stationName != null) {
-      showSnack(context, result.stationName!);
+    setState(() => _applyLocation(result));
+    if (_station.text.isNotEmpty) {
+      showSnack(context, _station.text);
     }
   }
 

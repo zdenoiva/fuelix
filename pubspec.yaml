@@ -1,7 +1,7 @@
 name: fuelix
 description: "Fuelix – tankovania, spotreba, servis a pripomienky pre tvoje auto."
 publish_to: 'none'
-version: 0.5.0+108
+version: 0.5.1+109
 
 environment:
   sdk: ^3.13.7
@@ -38,6 +38,7 @@ dependencies:
   cryptography: ^2.9.0
   flutter_secure_storage: ^11.2.0
   google_mlkit_text_recognition: ^1.0.3
+  geocoding: ^5.0.1
 
 dev_dependencies:
   flutter_test:

@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../app_state.dart';
@@ -10,14 +11,19 @@ class LocationResult {
     required this.latitude,
     required this.longitude,
     this.stationName,
+    this.city,
   });
 
   final double latitude;
   final double longitude;
   final String? stationName;
+
+  /// Municipality from reverse geocoding, e.g. "Prievidza".
+  final String? city;
 }
 
-/// Resolves the current position and tries to match a known fuel station.
+/// Resolves the current position, matches a known fuel station and enriches the
+/// name with the city ("Shell" → "Shell Prievidza").
 class LocationService {
   LocationService._();
 
@@ -63,9 +69,9 @@ class LocationService {
       }
     }
 
-    String? name;
+    String? baseName;
     if (nearest != null && nearestDistance <= 150) {
-      name = nearest.name;
+      baseName = nearest.name;
     } else {
       // Reuse the station of the previous fill-up when it was logged nearby.
       final last = await AppState.instance.repo.lastFillUp(vehicleId);
@@ -78,15 +84,53 @@ class LocationService {
           last.latitude!,
           last.longitude!,
         );
-        if (distance <= 400) name = last.stationName;
+        if (distance <= 400) baseName = last.stationName;
       }
     }
+
+    final city = await _reverseCity(position.latitude, position.longitude);
+
+    // A bare brand ("Shell") gains the city; a name that already contains it,
+    // or a full name with a branch ("Shell PD"), is kept as it is.
+    var name = baseName;
+    if (name != null && city != null) {
+      final lowerName = name.toLowerCase();
+      final lowerCity = city.toLowerCase();
+      final bareBrand = !name.contains(' ');
+      if (bareBrand && !lowerName.contains(lowerCity)) {
+        name = '$name $city';
+      }
+    }
+    name ??= city;
 
     return LocationResult(
       latitude: position.latitude,
       longitude: position.longitude,
       stationName: name,
+      city: city,
     );
+  }
+
+  Future<String?> _reverseCity(double latitude, double longitude) async {
+    try {
+      final placemarks = await Geocoding()
+          .placemarkFromCoordinates(latitude, longitude)
+          .timeout(const Duration(seconds: 6));
+      if (placemarks.isEmpty) return null;
+      final place = placemarks.first;
+      final candidates = [
+        place.locality,
+        place.subAdministrativeArea,
+        place.subLocality,
+      ];
+      for (final candidate in candidates) {
+        final text = candidate?.trim() ?? '';
+        if (text.isNotEmpty) return text;
+      }
+    } catch (_) {
+      // Geocoding needs Google Play services and a network; ignore failures.
+    }
+    return null;
   }
 
   double _distanceMeters(
