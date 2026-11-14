@@ -305,6 +305,11 @@ class Strings {
       'qr.notReceipt': 'This QR code is not a fuel receipt',
       'qr.scanned': 'Receipt data loaded',
       'qr.manual': 'Enter manually',
+      'qr.qrUnknown': 'This QR code carries no prices. Photograph the receipt instead.',
+      'qr.photo': 'Photograph receipt',
+      'qr.gallery': 'From gallery',
+      'qr.reading': 'Reading the receipt…',
+      'qr.ocrFailed': 'Could not read the values. Take a sharper photo or enter them manually.',
     },
     'sk': {
       'app.name': 'Fuelix',
@@ -574,6 +579,11 @@ class Strings {
       'qr.notReceipt': 'Tento QR kód nie je z pokladničného bločku',
       'qr.scanned': 'Údaje z bločku načítané',
       'qr.manual': 'Zadať ručne',
+      'qr.qrUnknown': 'Z tohto QR sa nedajú načítať ceny. Odfotografuj bloček.',
+      'qr.photo': 'Odfotiť bloček',
+      'qr.gallery': 'Z galérie',
+      'qr.reading': 'Čítam bloček…',
+      'qr.ocrFailed': 'Údaje sa nepodarilo prečítať. Skús ostrejšiu fotku alebo ich zadaj ručne.',
     },
     'cs': {
       'app.name': 'Fuelix',
@@ -843,6 +853,11 @@ class Strings {
       'qr.notReceipt': 'Tento QR kód není z pokladní účtenky',
       'qr.scanned': 'Údaje z účtenky načteny',
       'qr.manual': 'Zadat ručně',
+      'qr.qrUnknown': 'Z tohoto QR nelze načíst ceny. Vyfoť účtenku.',
+      'qr.photo': 'Vyfotit účtenku',
+      'qr.gallery': 'Z galerie',
+      'qr.reading': 'Čtu účtenku…',
+      'qr.ocrFailed': 'Údaje se nepodařilo přečíst. Zkus ostřejší fotku nebo je zadej ručně.',
     },
   };
 }

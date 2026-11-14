@@ -22,6 +22,7 @@ class FillUpFormScreen extends StatefulWidget {
     this.initialStation,
     this.initialLatitude,
     this.initialLongitude,
+    this.locationFuture,
   });
 
   final int vehicleId;
@@ -31,6 +32,10 @@ class FillUpFormScreen extends StatefulWidget {
   final String? initialStation;
   final double? initialLatitude;
   final double? initialLongitude;
+
+  /// Resolves in the background so the form opens immediately; the station and
+  /// coordinates are filled in as soon as GPS answers.
+  final Future<LocationResult?>? locationFuture;
 
   @override
   State<FillUpFormScreen> createState() => _FillUpFormScreenState();
@@ -94,6 +99,17 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
     _latitude = f?.latitude ?? widget.initialLatitude;
     _longitude = f?.longitude ?? widget.initialLongitude;
     _loadContext();
+    widget.locationFuture?.then((result) {
+      if (!mounted || result == null) return;
+      setState(() {
+        _latitude ??= result.latitude;
+        _longitude ??= result.longitude;
+        final name = result.stationName;
+        if (_station.text.trim().isEmpty && name != null && name.isNotEmpty) {
+          _station.text = name;
+        }
+      });
+    });
   }
 
   String _trim(double value) {

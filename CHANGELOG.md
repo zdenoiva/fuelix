@@ -3,6 +3,14 @@
 Všetky podstatné zmeny Fuelixu. Formát vychádza z [Keep a Changelog](https://keepachangelog.com/sk/1.1.0/),
 verzie sa riadia [SemVer](https://semver.org/lang/sk/).
 
+## [0.3.1] - 2026-11-14
+
+- Bloček sa dá načítať aj vtedy, keď QR kód neobsahuje ceny (napr. Shell): v skeneri je tlačidlo „Odfotiť bloček“ a „Z galérie“.
+- Fotka bločku sa číta priamo v telefóne (Google ML Kit) – litre, cena za liter, celková suma a značka čerpačky.
+- Celková suma sa vyberá inteligentne: ak OCR prehodí stĺpce a „Spolu“ je medzisúčet, použije sa suma, ktorá sedí na litre × cena za liter.
+- Formulár tankovania sa z widgetu otvorí hneď; čerpačka podľa GPS sa doplní na pozadí, keď súradnice dorazia.
+- Opravená chyba s časovou zónou pri načítaní pripomienok.
+
 ## [0.3.0] - 2026-11-13
 
 - Heslo zálohy sa po prvom zadaní uloží do Android Keystore, takže ďalšie zálohy sa už na nič nepýtajú. V nastaveniach je nová položka „Heslo zálohy“ na jeho zmenu.

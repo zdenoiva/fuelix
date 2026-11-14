@@ -69,7 +69,7 @@ class ReceiptParser {
       return ReceiptData(raw: text, requiresOnline: true);
     }
 
-    final fromText = _tryText(text);
+    final fromText = parseText(text);
     if (fromText != null) return fromText;
 
     return null;
@@ -144,7 +144,11 @@ class ReceiptParser {
     }
   }
 
-  static ReceiptData? _tryText(String text) {
+  /// Parses recognised receipt text (camera OCR) into editable values.
+  ///
+  /// Tuned for Slovak and Czech fuel receipts: "46.190 L", "1.624 Eur/L",
+  /// "Cena celkom: 75.01 EUR".
+  static ReceiptData? parseText(String text) {
     if (text.length < 8) return null;
     final lower = text.toLowerCase();
 
@@ -159,19 +163,44 @@ class ReceiptParser {
         break;
       }
     }
+    if (liters == null) {
+      // Some printers drop the decimals; "46 L" is still a believable volume.
+      final plain = RegExp(
+        r'\b(\d{2,3})\s*(?:l|L|lt)\b',
+      ).allMatches(text);
+      for (final match in plain) {
+        final value = _asDouble(match.group(1));
+        if (value != null && value > 3 && value < 150) {
+          liters = value;
+          break;
+        }
+      }
+    }
 
     double? price;
     final priceMatch = RegExp(
       r'(\d+[.,]\d{2,4})\s*(?:€|eur|kč|czk)?\s*/\s*(?:l|L)\b',
+      caseSensitive: false,
     ).firstMatch(text);
     if (priceMatch != null) price = _asDouble(priceMatch.group(1));
 
-    double? total;
-    final totalMatch = RegExp(
-      r'(?:spolu|celkom|celkem|suma|total|k úhrade|uhrada)[^\d]{0,20}(\d+[.,]\d{1,2})',
-    ).firstMatch(lower);
-    if (totalMatch != null) total = _asDouble(totalMatch.group(1));
-    total ??= _valueFor(text, const ['sum', 'total']);
+    // The receipt total: prefer an amount that matches litres × unit price,
+    // because OCR often reorders columns and "Spolu" is then the tax base.
+    final keywordTotal = _keywordTotal(text) ??
+        _valueFor(text, const ['sum', 'total']);
+    double? total = keywordTotal;
+    if (liters != null && price != null) {
+      final expected = liters * price;
+      final tolerance = expected * 0.02 + 0.05;
+      double? close;
+      for (final amount in _allAmounts(text)) {
+        if ((amount - expected).abs() <= tolerance) {
+          close = amount;
+          break;
+        }
+      }
+      total = close ?? total ?? expected;
+    }
 
     String? station;
     for (final brand in const [
@@ -216,6 +245,50 @@ class ReceiptParser {
     if (l == null && t != null && p != null && p > 0) l = t / p;
     if (l == null && t == null && p == null) return null;
     return (l, t, p);
+  }
+
+  /// All amounts with two decimals ("75.01", "60,98"), in text order.
+  static List<double> _allAmounts(String text) {
+    final result = <double>[];
+    for (final match in RegExp(
+      r'(?<!\d)(\d{1,4}[.,]\d{2})(?!\d)',
+    ).allMatches(text)) {
+      final value = _asDouble(match.group(1));
+      if (value != null) result.add(value);
+    }
+    return result;
+  }
+
+  /// Amount that follows a total-ish keyword, looking up to two lines below
+  /// because OCR often splits a receipt into columns.
+  static double? _keywordTotal(String text) {
+    final lines = text.split('\n');
+    const keywords = [
+      'cena celkom',
+      'celkom',
+      'celkem',
+      'spolu',
+      'suma',
+      'total',
+      'k úhrade',
+      'uhrada',
+      'zaplatíte',
+    ];
+    for (var index = 0; index < lines.length; index++) {
+      final line = lines[index].toLowerCase();
+      if (!keywords.any(line.contains)) continue;
+      for (
+        var offset = 0;
+        offset <= 2 && index + offset < lines.length;
+        offset++
+      ) {
+        final match = RegExp(
+          r'(?<!\d)(\d+[.,]\d{1,2})(?!\d)',
+        ).firstMatch(lines[index + offset]);
+        if (match != null) return _asDouble(match.group(1));
+      }
+    }
+    return null;
   }
 
   static double? _valueFor(String text, List<String> keys) {

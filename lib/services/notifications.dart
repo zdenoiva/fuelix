@@ -1,6 +1,6 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
-import 'package:timezone/data/latest.dart' as tzdata;
+import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../data/database.dart';
@@ -21,7 +21,11 @@ class NotificationService {
       final info = await FlutterTimezone.getLocalTimezone();
       tz.setLocalLocation(tz.getLocation(info.identifier));
     } catch (_) {
-      tz.setLocalLocation(tz.getLocation('Europe/Bratislava'));
+      try {
+        tz.setLocalLocation(tz.getLocation('Europe/Bratislava'));
+      } catch (_) {
+        // Keep the UTC default from the timezone package.
+      }
     }
 
     const android = AndroidInitializationSettings('@mipmap/ic_launcher');

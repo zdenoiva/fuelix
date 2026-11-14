@@ -58,9 +58,6 @@ Future<void> startWidgetFillUp() async {
     if (receipt == null) return;
 
     final last = await repo.lastFillUp(vehicle.id);
-    final location = await LocationService.instance.locate(
-      vehicleId: vehicle.id,
-    );
     final receiptStation = receipt.stationName;
     await navigator.push(
       MaterialPageRoute<void>(
@@ -72,9 +69,10 @@ Future<void> startWidgetFillUp() async {
           initialStation:
               (receiptStation != null && receiptStation.isNotEmpty)
                   ? receiptStation
-                  : location?.stationName,
-          initialLatitude: location?.latitude,
-          initialLongitude: location?.longitude,
+                  : null,
+          locationFuture: LocationService.instance.locate(
+            vehicleId: vehicle.id,
+          ),
         ),
       ),
     );
