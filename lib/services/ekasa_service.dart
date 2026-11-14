@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../domain/station_brand.dart';
 import 'receipt_scanner.dart';
 
 /// Looks up a Slovak eKasa receipt by the UID printed on it (and encoded in the
@@ -198,7 +199,13 @@ class EkasaReceipt {
   String? _stationName() {
     final unit = unitName?.trim();
     if (unit != null && unit.isNotEmpty) return unit;
-    return null;
+
+    // The receipt often has no unit name; the operator company still tells us
+    // the brand (for example HAPPE → Shell in Slovakia).
+    final brand = StationBrand.detect(
+      [unitName, organizationName].whereType<String>().join(' '),
+    );
+    return brand?.name;
   }
 
   static String? _text(Object? value) {

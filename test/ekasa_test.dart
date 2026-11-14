@@ -94,11 +94,11 @@ void main() {
       expect(EkasaReceipt.fromJson(json).toReceiptData(), isNull);
     });
 
-    test('falls back to the organization name when the unit has none', () {
+    test('falls back to the brand when the unit has no name', () {
       final json = fuelReceipt();
       json['unit'] = {'name': null};
       final data = EkasaReceipt.fromJson(json).toReceiptData();
-      expect(data!.stationName, 'HAPPE s.r.o.');
+      expect(data!.stationName, 'Shell');
     });
   });
 }

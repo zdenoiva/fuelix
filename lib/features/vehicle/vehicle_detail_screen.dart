@@ -67,14 +67,9 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen>
   }
 
   Future<void> _addFillUp() async {
-    final last = await _repo.lastFillUp(widget.vehicleId);
-    if (!mounted) return;
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => FillUpFormScreen(
-          vehicleId: widget.vehicleId,
-          prefilledOdometer: last?.odometer ?? _vehicle?.initialOdometer,
-        ),
+        builder: (_) => FillUpFormScreen(vehicleId: widget.vehicleId),
       ),
     );
   }

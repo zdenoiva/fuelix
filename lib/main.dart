@@ -62,15 +62,12 @@ Future<void> startWidgetFillUp() async {
     );
     if (receipt == null) return;
 
-    final last = await repo.lastFillUp(vehicle.id);
     final receiptStation = receipt.stationName;
     await navigator.push(
       MaterialPageRoute<void>(
         builder: (_) => FillUpFormScreen(
           vehicleId: vehicle.id,
           draft: receipt,
-          prefilledOdometer: last?.odometer ??
-              (vehicle.initialOdometer > 0 ? vehicle.initialOdometer : null),
           initialStation:
               (receiptStation != null && receiptStation.isNotEmpty)
                   ? receiptStation

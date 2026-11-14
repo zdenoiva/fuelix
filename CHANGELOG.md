@@ -3,6 +3,15 @@
 Všetky podstatné zmeny Fuelixu. Formát vychádza z [Keep a Changelog](https://keepachangelog.com/sk/1.1.0/),
 verzie sa riadia [SemVer](https://semver.org/lang/sk/).
 
+## [0.5.0] - 2026-11-14
+
+- Čerpačka z eKasy: keď doklad neuvádza prevádzku, appka rozpozná značku z prevádzkovateľa (HAPPE → Shell) a v poli stanice zobrazí farebnú ikonku značky (Shell, Slovnaft, OMV, MOL, Jurki, Tesco, Orlen, Benzina, EuroOil, Lukoil).
+- Pri pridávaní tankovania je hore posledná cena za liter aj posledný stav tachometra; pole Stav km zostáva prázdne, aby sa omylom neuložil rovnaký nájazd.
+- Spotreba sa v hornej karte zobrazí hneď po zadaní stavu km a litrov.
+- Pri ukladaní appka porovná novú spotrebu s priemerom: ak je výrazne nižšia, ponúkne označiť predošlé tankovanie ako vynechané; ak je výrazne vyššia, upozorní na kontrolu litrov a tachometra.
+- Kratší popis „Vynechané tankovanie“: „Vynechali ste predošlé tankovanie? Nezapočíta sa do priemeru.“
+- Widget 1×1 má ikonu QR, nápis Fuelix a slovo TANKUJ.
+
 ## [0.4.1] - 2026-11-14
 
 - Čerpačka z eKasy sa použije len vtedy, keď doklad obsahuje konkrétnu prevádzku; firma prevádzkovateľa (napr. „HAPPE s.r.o.“) sa už ako stanica nezobrazí. Inak zostane prázdna a doplní sa podľa GPS alebo z posledných troch staníc.

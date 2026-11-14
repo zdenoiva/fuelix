@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import '../../app_state.dart';
 import '../../data/database.dart';
 import '../../domain/consumption.dart';
+import '../../domain/station_brand.dart';
 import '../../l10n/strings.dart';
 import '../../services/location_service.dart';
 import '../../services/receipt_scanner.dart';
@@ -18,7 +19,6 @@ class FillUpFormScreen extends StatefulWidget {
     required this.vehicleId,
     this.fillUp,
     this.draft,
-    this.prefilledOdometer,
     this.initialStation,
     this.initialLatitude,
     this.initialLongitude,
@@ -28,7 +28,6 @@ class FillUpFormScreen extends StatefulWidget {
   final int vehicleId;
   final FillUp? fillUp;
   final ReceiptData? draft;
-  final double? prefilledOdometer;
   final String? initialStation;
   final double? initialLatitude;
   final double? initialLongitude;
@@ -69,12 +68,10 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
     final f = widget.fillUp;
     final draft = widget.draft;
     _date = f?.date ?? draft?.date ?? DateTime.now();
+    // New fill-ups start with an empty odometer on purpose: a prefilled value
+    // makes it easy to save two records with the same mileage.
     _odometer = TextEditingController(
-      text: f != null
-          ? _trim(f.odometer)
-          : (widget.prefilledOdometer == null
-                ? ''
-                : _trim(widget.prefilledOdometer!)),
+      text: f != null ? _trim(f.odometer) : '',
     );
     _liters = TextEditingController(
       text: f != null ? _trim(f.liters) : (draft?.liters == null ? '' : _trim(draft!.liters!)),
@@ -127,9 +124,6 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
       _existing = fills;
       _last = last;
       _recentStations = recent;
-      if (widget.fillUp == null && _odometer.text.isEmpty && last != null) {
-        _odometer.text = _trim(last.odometer);
-      }
       if (widget.fillUp == null && _pricePerLiter.text.isEmpty && last != null) {
         _pricePerLiter.text = _trim(last.pricePerLiter);
         _syncFromPrice();
@@ -165,6 +159,10 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
   final FocusNode _totalFocus = FocusNode();
   final FocusNode _priceFocus = FocusNode();
 
+  /// True when the user typed the total themselves. Changing litres then
+  /// recalculates the unit price instead of overwriting the total.
+  bool _totalManual = false;
+
   /// Formats a derived value with the decimal separator of the app language so
   /// the auto-filled fields look like the numbers the user types.
   String _formatDecimal(double value, int decimals) {
@@ -177,6 +175,7 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
   void _syncFromTotal() {
     final liters = _litersValue;
     final total = _totalValue;
+    _totalManual = true;
     if (liters == null || liters <= 0 || total == null) return;
     if (!_priceFocus.hasFocus) {
       _pricePerLiter.text = _formatDecimal(total / liters, 3);
@@ -188,6 +187,7 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
   void _syncFromPrice() {
     final liters = _litersValue;
     final price = double.tryParse(_pricePerLiter.text.replaceAll(',', '.'));
+    _totalManual = false;
     if (liters == null || liters <= 0 || price == null) return;
     if (!_totalFocus.hasFocus) {
       _total.text = _formatDecimal(price * liters, 2);
@@ -195,13 +195,15 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
     setState(() {});
   }
 
-  /// Changing litres keeps the total and recalculates the unit price.
+  /// Changing litres follows whichever value the user entered: a typed total
+  /// recalculates the unit price, a typed unit price recalculates the total.
   void _syncAfterLitersChanged() {
     final liters = _litersValue;
     if (liters == null || liters <= 0) return;
-    final total = _totalValue;
-    if (total != null && total > 0) {
-      if (!_priceFocus.hasFocus) {
+
+    if (_totalManual) {
+      final total = _totalValue;
+      if (total != null && total > 0 && !_priceFocus.hasFocus) {
         _pricePerLiter.text = _formatDecimal(total / liters, 3);
       }
     } else {
@@ -312,6 +314,75 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
     );
   }
 
+  /// Warns about a consumption that is far outside the car's average. A value
+  /// well below the average usually means a skipped fill-up, so the dialog
+  /// offers to mark it; a value far above it usually means a typo.
+  Future<bool> _checkConsumptionPlausibility() async {
+    final preview = _preview;
+    if (preview == null) return true;
+
+    final segments = consumptionSegments(
+      _existing
+          .where((fill) => fill.id != widget.fillUp?.id)
+          .map(
+            (fill) => FillUpPoint(
+              id: fill.id,
+              date: fill.date,
+              odometer: fill.odometer,
+              liters: fill.liters,
+              isFull: fill.isFull,
+              isMissed: fill.isMissed,
+              excludeDistance: fill.excludeDistance,
+            ),
+          ),
+    );
+    final reliable = segments.where((segment) => segment.reliable).length;
+    if (reliable < 3) return true;
+
+    final average = averageConsumption(segments);
+    if (average == null || average <= 0) return true;
+
+    final below = preview < average * 0.7;
+    final above = preview > average * 1.4;
+    if (!below && !above) return true;
+
+    final choice = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(
+          dialogContext.t(below ? 'fillup.lowTitle' : 'fillup.highTitle'),
+        ),
+        content: Text(
+          dialogContext.t(below ? 'fillup.lowBody' : 'fillup.highBody', {
+            'value': context.num1(preview),
+            'avg': context.num1(average),
+          }),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop('edit'),
+            child: Text(dialogContext.t('fillup.editValues')),
+          ),
+          if (below)
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop('missed'),
+              child: Text(dialogContext.t('fillup.markMissed')),
+            ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop('save'),
+            child: Text(dialogContext.t('fillup.saveAnyway')),
+          ),
+        ],
+      ),
+    );
+
+    if (choice == 'missed') {
+      setState(() => _missed = true);
+      return true;
+    }
+    return choice == 'save';
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     final odometer = _odometerValue!;
@@ -332,6 +403,11 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
         confirmLabel: context.t('common.continue'),
       );
       if (!proceed || !mounted) return;
+    }
+
+    if (widget.fillUp == null && _fullTank && !_missed) {
+      final keep = await _checkConsumptionPlausibility();
+      if (!keep || !mounted) return;
     }
 
     final values = FillUpsCompanion(
@@ -364,6 +440,7 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final preview = _preview;
+    final stationBrand = StationBrand.detect(_station.text);
     final distance = _last != null && _odometerValue != null
         ? _odometerValue! - _last!.odometer
         : null;
@@ -388,8 +465,10 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
           children: [
             SectionCard(
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
+                    flex: 3,
                     child: StatBlock(
                       label: context.t('fillup.consumption'),
                       value: preview == null
@@ -404,12 +483,22 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
                     ),
                   ),
                   if (widget.fillUp == null && _last != null)
-                    Text(
-                      context.t('fillup.lastPrice', {
-                        'price': context.money(_last!.pricePerLiter),
-                      }),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: scheme.onSurfaceVariant,
+                    Expanded(
+                      flex: 4,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          _HeaderLine(
+                            label: context.t('fillup.lastPrice'),
+                            value: context.money(_last!.pricePerLiter),
+                          ),
+                          const SizedBox(height: 4),
+                          _HeaderLine(
+                            label: context.t('fillup.lastOdometer'),
+                            value:
+                                '${context.num1(_last!.odometer)} ${context.t('common.km')}',
+                          ),
+                        ],
                       ),
                     ),
                 ],
@@ -528,6 +617,23 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
                     decoration: InputDecoration(
                       labelText: context.t('fillup.station'),
                       hintText: context.t('fillup.stationHint'),
+                      prefixIcon: stationBrand == null
+                          ? null
+                          : Padding(
+                              padding: const EdgeInsets.fromLTRB(12, 10, 4, 10),
+                              child: CircleAvatar(
+                                radius: 12,
+                                backgroundColor: stationBrand.color,
+                                child: Text(
+                                  stationBrand.initial,
+                                  style: TextStyle(
+                                    color: stationBrand.textColor,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
+                            ),
                       suffixIcon: _locating
                           ? const Padding(
                               padding: EdgeInsets.all(12),
@@ -628,5 +734,36 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
       default:
         return '€';
     }
+  }
+}
+
+class _HeaderLine extends StatelessWidget {
+  const _HeaderLine({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Text(
+          label,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            color: scheme.onSurfaceVariant,
+          ),
+        ),
+        Text(
+          value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    );
   }
 }
