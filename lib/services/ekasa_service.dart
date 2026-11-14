@@ -192,11 +192,12 @@ class EkasaReceipt {
     );
   }
 
+  /// Only the operating unit is a station. The organisation is the company
+  /// behind the pump (e.g. "HAPPE s.r.o."), so it must never replace the real
+  /// name – better to leave it empty and let GPS or recent stations fill it.
   String? _stationName() {
     final unit = unitName?.trim();
     if (unit != null && unit.isNotEmpty) return unit;
-    final organization = organizationName?.trim();
-    if (organization != null && organization.isNotEmpty) return organization;
     return null;
   }
 

@@ -33,11 +33,16 @@ Future<void> main() async {
   });
 }
 
+/// True while the widget scan flow is on screen. Prevents a second scanner
+/// (and a second camera controller) when the widget is tapped twice.
+bool _scanFlowActive = false;
+
 /// Home screen widget flow: scan the receipt QR, resolve the current station by
 /// GPS and open a prefilled fill-up form.
 Future<void> startWidgetFillUp() async {
   final navigator = rootNavigatorKey.currentState;
-  if (navigator == null) return;
+  if (navigator == null || _scanFlowActive) return;
+  _scanFlowActive = true;
   try {
     final repo = AppState.instance.repo;
     final vehicles = await repo.vehicles();
@@ -78,6 +83,8 @@ Future<void> startWidgetFillUp() async {
     );
   } catch (_) {
     // A failed shortcut must never crash the running app.
+  } finally {
+    _scanFlowActive = false;
   }
 }
 

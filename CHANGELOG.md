@@ -3,6 +3,13 @@
 Všetky podstatné zmeny Fuelixu. Formát vychádza z [Keep a Changelog](https://keepachangelog.com/sk/1.1.0/),
 verzie sa riadia [SemVer](https://semver.org/lang/sk/).
 
+## [0.4.1] - 2026-11-14
+
+- Čerpačka z eKasy sa použije len vtedy, keď doklad obsahuje konkrétnu prevádzku; firma prevádzkovateľa (napr. „HAPPE s.r.o.“) sa už ako stanica nezobrazí. Inak zostane prázdna a doplní sa podľa GPS alebo z posledných troch staníc.
+- Opravená chyba „MobileScannerController is already running“: dvojité ťuknutie na widget už neotvorí druhý skener.
+- Po minimalizovaní a opätovnom otvorení appky sa už nespustí skener; otvorí sa normálne garáž alebo obľúbené auto.
+- Widget je zmenšený na 1×1 dielik – obsahuje len ikonu QR a text „TANK“.
+
 ## [0.4.0] - 2026-11-14
 
 - QR kód z bločku sa už nevyhodnocuje naslepo: ak obsahuje eKasa UID, Fuelix ho overí v štátnej službe Finančnej správy a načíta položky, litre, cenu za liter, sumu aj dátum.

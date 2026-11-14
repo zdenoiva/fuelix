@@ -4,24 +4,22 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/widget_bg"
-    android:gravity="center_vertical"
+    android:gravity="center"
     android:orientation="vertical"
-    android:padding="14dp">
+    android:padding="4dp">
+
+    <ImageView
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:contentDescription="@string/widget_description"
+        android:src="@drawable/ic_qr_tiny" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Fuelix"
+        android:layout_marginTop="1dp"
+        android:text="TANK"
         android:textColor="#FFFFFF"
-        android:textSize="16sp"
+        android:textSize="11sp"
         android:textStyle="bold" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:alpha="0.9"
-        android:text="+ Natankovať"
-        android:textColor="#FFFFFF"
-        android:textSize="13sp" />
 </LinearLayout>

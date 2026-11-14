@@ -77,6 +77,9 @@ class MainActivity : FlutterActivity() {
         }
 
         pendingScan = intent?.action == ACTION_SCAN
+        // Consume the action so reopening the app from recents does not start
+        // the scanner again.
+        if (pendingScan) intent?.action = null
     }
 
     private fun startPickTarget(result: MethodChannel.Result) {
@@ -137,6 +140,8 @@ class MainActivity : FlutterActivity() {
         if (intent.action == ACTION_SCAN) {
             pendingScan = true
             shortcutChannel?.invokeMethod("openScanner", null)
+            intent.action = null
+            setIntent(intent)
         }
     }
 }
