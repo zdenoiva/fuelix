@@ -9,6 +9,8 @@ class ReceiptData {
     this.stationName,
     this.raw,
     this.requiresOnline = false,
+    this.receiptId,
+    this.date,
   });
 
   final double? liters;
@@ -16,6 +18,10 @@ class ReceiptData {
   final double? pricePerLiter;
   final String? stationName;
   final String? raw;
+
+  /// eKasa UID (for example `O-007EE…`) when the QR code carries one.
+  final String? receiptId;
+  final DateTime? date;
 
   /// True when the QR only carries an eKasa receipt id that would have to be
   /// resolved through the financial administration API.
@@ -28,6 +34,7 @@ class ReceiptData {
     double? total,
     double? pricePerLiter,
     String? stationName,
+    DateTime? date,
   }) => ReceiptData(
     liters: liters ?? this.liters,
     total: total ?? this.total,
@@ -35,6 +42,8 @@ class ReceiptData {
     stationName: stationName ?? this.stationName,
     raw: raw,
     requiresOnline: requiresOnline,
+    receiptId: receiptId,
+    date: date ?? this.date,
   );
 }
 
@@ -47,6 +56,18 @@ class ReceiptData {
 class ReceiptParser {
   const ReceiptParser._();
 
+  /// Slovak eKasa UID: a prefix letter, a dash and 32 hex characters.
+  static final RegExp uidPattern = RegExp(
+    r'(^|[^0-9A-Za-z])([0-9OQV]-[0-9A-Fa-f]{32})($|[^0-9A-Za-z])',
+    caseSensitive: false,
+  );
+
+  static String? extractUid(String raw) {
+    final match = uidPattern.firstMatch(raw);
+    if (match == null) return null;
+    return match.group(2)!.toUpperCase();
+  }
+
   static ReceiptData? parse(String raw) {
     final text = raw.trim();
     if (text.isEmpty) return null;
@@ -56,6 +77,13 @@ class ReceiptParser {
 
     final fromQuery = _tryQuery(text);
     if (fromQuery != null && fromQuery.hasValues) return fromQuery;
+
+    // A plain eKasa UID (optionally inside a URL) has no prices in the QR; the
+    // scanner resolves it through the Financial Administration API.
+    final uid = extractUid(text);
+    if (uid != null) {
+      return ReceiptData(raw: text, receiptId: uid, requiresOnline: true);
+    }
 
     if (_isEkasa(text)) {
       final total = _valueFor(text, const ['tk', 'total', 'suma', 'sum']);

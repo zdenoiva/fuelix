@@ -310,6 +310,8 @@ class Strings {
       'qr.gallery': 'From gallery',
       'qr.reading': 'Reading the receipt…',
       'qr.ocrFailed': 'Could not read the values. Take a sharper photo or enter them manually.',
+      'qr.checking': 'Checking the receipt in eKasa…',
+      'qr.ekasaNotFound': 'The receipt was not found in eKasa. Photograph it instead.',
     },
     'sk': {
       'app.name': 'Fuelix',
@@ -584,6 +586,8 @@ class Strings {
       'qr.gallery': 'Z galérie',
       'qr.reading': 'Čítam bloček…',
       'qr.ocrFailed': 'Údaje sa nepodarilo prečítať. Skús ostrejšiu fotku alebo ich zadaj ručne.',
+      'qr.checking': 'Overujem bloček v eKase…',
+      'qr.ekasaNotFound': 'Doklad sa v eKase nenašiel. Odfotografuj bloček.',
     },
     'cs': {
       'app.name': 'Fuelix',
@@ -858,6 +862,8 @@ class Strings {
       'qr.gallery': 'Z galerie',
       'qr.reading': 'Čtu účtenku…',
       'qr.ocrFailed': 'Údaje se nepodařilo přečíst. Zkus ostřejší fotku nebo je zadej ručně.',
+      'qr.checking': 'Ověřuji účtenku v eKase…',
+      'qr.ekasaNotFound': 'Doklad se v eKase nenašel. Vyfoť účtenku.',
     },
   };
 }

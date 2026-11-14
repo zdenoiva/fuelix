@@ -68,7 +68,7 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
     super.initState();
     final f = widget.fillUp;
     final draft = widget.draft;
-    _date = f?.date ?? DateTime.now();
+    _date = f?.date ?? draft?.date ?? DateTime.now();
     _odometer = TextEditingController(
       text: f != null
           ? _trim(f.odometer)

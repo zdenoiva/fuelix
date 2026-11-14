@@ -3,6 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../l10n/strings.dart';
+import '../../services/ekasa_service.dart';
 import '../../services/receipt_ocr.dart';
 import '../../services/receipt_scanner.dart';
 
@@ -22,6 +23,7 @@ class _ReceiptScannerScreenState extends State<ReceiptScannerScreen> {
   bool _handled = false;
   bool _invalid = false;
   bool _processing = false;
+  bool _lookingUp = false;
   String? _raw;
 
   @override
@@ -36,9 +38,23 @@ class _ReceiptScannerScreenState extends State<ReceiptScannerScreen> {
       final raw = barcode.rawValue;
       if (raw == null || raw.isEmpty) continue;
       final data = ReceiptParser.parse(raw);
-      if (data != null) {
+      if (data == null) {
+        if (!_invalid && mounted) {
+          setState(() {
+            _invalid = true;
+            _raw = raw;
+          });
+        }
+        continue;
+      }
+      if (data.hasValues) {
         _handled = true;
         Navigator.of(context).pop(data);
+        return;
+      }
+      final uid = data.receiptId;
+      if (uid != null) {
+        _resolveUid(uid, raw);
         return;
       }
       if (!_invalid && mounted) {
@@ -48,6 +64,31 @@ class _ReceiptScannerScreenState extends State<ReceiptScannerScreen> {
         });
       }
     }
+  }
+
+  Future<void> _resolveUid(String uid, String raw) async {
+    setState(() {
+      _processing = true;
+      _lookingUp = true;
+    });
+    final receipt = await EkasaService.instance.lookup(uid);
+    if (!mounted) return;
+
+    if (receipt != null && receipt.hasValues) {
+      _handled = true;
+      Navigator.of(context).pop(receipt);
+      return;
+    }
+
+    setState(() {
+      _processing = false;
+      _lookingUp = false;
+      _invalid = true;
+      _raw = raw;
+    });
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(context.t('qr.ekasaNotFound'))));
   }
 
   Future<void> _readImage(ImageSource source) async {
@@ -125,7 +166,7 @@ class _ReceiptScannerScreenState extends State<ReceiptScannerScreen> {
                     const CircularProgressIndicator(color: Colors.white),
                     const SizedBox(height: 14),
                     Text(
-                      context.t('qr.reading'),
+                      context.t(_lookingUp ? 'qr.checking' : 'qr.reading'),
                       style: const TextStyle(color: Colors.white),
                     ),
                   ],

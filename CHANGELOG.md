@@ -3,6 +3,12 @@
 Všetky podstatné zmeny Fuelixu. Formát vychádza z [Keep a Changelog](https://keepachangelog.com/sk/1.1.0/),
 verzie sa riadia [SemVer](https://semver.org/lang/sk/).
 
+## [0.4.0] - 2026-11-14
+
+- QR kód z bločku sa už nevyhodnocuje naslepo: ak obsahuje eKasa UID, Fuelix ho overí v štátnej službe Finančnej správy a načíta položky, litre, cenu za liter, sumu aj dátum.
+- Z bločku sa rozpozná palivová položka (Natural, Diesel, FuelSave, LPG, CNG…) a nie bežný nákup; z obyčajného nákupného bločku sa tankovanie nevytvorí.
+- Ak sa doklad v eKase nenájde alebo je bez internetu, appka ponúkne odfotenie bločku (OCR) alebo ručné zadanie.
+
 ## [0.3.1] - 2026-11-14
 
 - Bloček sa dá načítať aj vtedy, keď QR kód neobsahuje ceny (napr. Shell): v skeneri je tlačidlo „Odfotiť bloček“ a „Z galérie“.
