@@ -1,13 +1,14 @@
 {
-  "version": "0.4.0",
-  "versionCode": 106,
-  "apkUrl": "https://github.com/zdenoiva/fuelix/releases/download/v0.4.0/fuelix-0.4.0.apk",
-  "sha256": "ffdf0aa1ea4b7ba42eaafd7ecb1c63a86163773ef9a0a98ea38a7241fe55e122",
-  "size": 121281330,
-  "publishedAt": "2026-11-14T09:32:28Z",
+  "version": "0.4.1",
+  "versionCode": 107,
+  "apkUrl": "https://github.com/zdenoiva/fuelix/releases/download/v0.4.1/fuelix-0.4.1.apk",
+  "sha256": "e2079a0a0e275ebbd1a9e75c6c83036dac282241817f1d28c976d953b7f01163",
+  "size": 121282766,
+  "publishedAt": "2026-11-14T10:02:00Z",
   "changelog": [
-    "QR kód z bločku sa už nevyhodnocuje naslepo: ak obsahuje eKasa UID, Fuelix ho overí v štátnej službe Finančnej správy a načíta položky, litre, cenu za liter, sumu aj dátum.",
-    "Z bločku sa rozpozná palivová položka (Natural, Diesel, FuelSave, LPG, CNG…) a nie bežný nákup; z obyčajného nákupného bločku sa tankovanie nevytvorí.",
-    "Ak sa doklad v eKase nenájde alebo je bez internetu, appka ponúkne odfotenie bločku (OCR) alebo ručné zadanie."
+    "Čerpačka z eKasy sa použije len vtedy, keď doklad obsahuje konkrétnu prevádzku; firma prevádzkovateľa (napr. „HAPPE s.r.o.“) sa už ako stanica nezobrazí. Inak zostane prázdna a doplní sa podľa GPS alebo z posledných troch staníc.",
+    "Opravená chyba „MobileScannerController is already running“: dvojité ťuknutie na widget už neotvorí druhý skener.",
+    "Po minimalizovaní a opätovnom otvorení appky sa už nespustí skener; otvorí sa normálne garáž alebo obľúbené auto.",
+    "Widget je zmenšený na 1×1 dielik – obsahuje len ikonu QR a text „TANK“."
   ]
 }
