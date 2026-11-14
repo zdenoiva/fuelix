@@ -1,14 +1,16 @@
 {
-  "version": "0.4.1",
-  "versionCode": 107,
-  "apkUrl": "https://github.com/zdenoiva/fuelix/releases/download/v0.4.1/fuelix-0.4.1.apk",
-  "sha256": "e2079a0a0e275ebbd1a9e75c6c83036dac282241817f1d28c976d953b7f01163",
-  "size": 121282766,
-  "publishedAt": "2026-11-14T10:02:00Z",
+  "version": "0.5.0",
+  "versionCode": 108,
+  "apkUrl": "https://github.com/zdenoiva/fuelix/releases/download/v0.5.0/fuelix-0.5.0.apk",
+  "sha256": "47a6e40b947cc105587892251f99434fb2afe7235c0e23d675b6f4421a96e351",
+  "size": 121299234,
+  "publishedAt": "2026-11-14T10:40:07Z",
   "changelog": [
-    "Čerpačka z eKasy sa použije len vtedy, keď doklad obsahuje konkrétnu prevádzku; firma prevádzkovateľa (napr. „HAPPE s.r.o.“) sa už ako stanica nezobrazí. Inak zostane prázdna a doplní sa podľa GPS alebo z posledných troch staníc.",
-    "Opravená chyba „MobileScannerController is already running“: dvojité ťuknutie na widget už neotvorí druhý skener.",
-    "Po minimalizovaní a opätovnom otvorení appky sa už nespustí skener; otvorí sa normálne garáž alebo obľúbené auto.",
-    "Widget je zmenšený na 1×1 dielik – obsahuje len ikonu QR a text „TANK“."
+    "Čerpačka z eKasy: keď doklad neuvádza prevádzku, appka rozpozná značku z prevádzkovateľa (HAPPE → Shell) a v poli stanice zobrazí farebnú ikonku značky (Shell, Slovnaft, OMV, MOL, Jurki, Tesco, Orlen, Benzina, EuroOil, Lukoil).",
+    "Pri pridávaní tankovania je hore posledná cena za liter aj posledný stav tachometra; pole Stav km zostáva prázdne, aby sa omylom neuložil rovnaký nájazd.",
+    "Spotreba sa v hornej karte zobrazí hneď po zadaní stavu km a litrov.",
+    "Pri ukladaní appka porovná novú spotrebu s priemerom: ak je výrazne nižšia, ponúkne označiť predošlé tankovanie ako vynechané; ak je výrazne vyššia, upozorní na kontrolu litrov a tachometra.",
+    "Kratší popis „Vynechané tankovanie“: „Vynechali ste predošlé tankovanie? Nezapočíta sa do priemeru.“",
+    "Widget 1×1 má ikonu QR, nápis Fuelix a slovo TANKUJ."
   ]
 }
