@@ -1,16 +1,13 @@
 {
-  "version": "0.5.0",
-  "versionCode": 108,
-  "apkUrl": "https://github.com/zdenoiva/fuelix/releases/download/v0.5.0/fuelix-0.5.0.apk",
-  "sha256": "47a6e40b947cc105587892251f99434fb2afe7235c0e23d675b6f4421a96e351",
-  "size": 121299234,
-  "publishedAt": "2026-11-14T10:40:07Z",
+  "version": "0.5.1",
+  "versionCode": 109,
+  "apkUrl": "https://github.com/zdenoiva/fuelix/releases/download/v0.5.1/fuelix-0.5.1.apk",
+  "sha256": "6678fe952f8963a8ece6d5fb9457a87ea660f19b94442025912dca98cfe992fc",
+  "size": 121430286,
+  "publishedAt": "2026-11-14T11:21:20Z",
   "changelog": [
-    "Čerpačka z eKasy: keď doklad neuvádza prevádzku, appka rozpozná značku z prevádzkovateľa (HAPPE → Shell) a v poli stanice zobrazí farebnú ikonku značky (Shell, Slovnaft, OMV, MOL, Jurki, Tesco, Orlen, Benzina, EuroOil, Lukoil).",
-    "Pri pridávaní tankovania je hore posledná cena za liter aj posledný stav tachometra; pole Stav km zostáva prázdne, aby sa omylom neuložil rovnaký nájazd.",
-    "Spotreba sa v hornej karte zobrazí hneď po zadaní stavu km a litrov.",
-    "Pri ukladaní appka porovná novú spotrebu s priemerom: ak je výrazne nižšia, ponúkne označiť predošlé tankovanie ako vynechané; ak je výrazne vyššia, upozorní na kontrolu litrov a tachometra.",
-    "Kratší popis „Vynechané tankovanie“: „Vynechali ste predošlé tankovanie? Nezapočíta sa do priemeru.“",
-    "Widget 1×1 má ikonu QR, nápis Fuelix a slovo TANKUJ."
+    "Miesto tankovania z GPS už obsahuje aj obec: z „Shell“ sa doplní „Shell Prievidza“ (reverse geocoding). Názvy, ktoré obec už majú alebo obsahujú pobočku (napr. „Shell PD“), zostanú bez zmeny.",
+    "Geolokácia má časový limit, takže tlačidlo „moja poloha“ nikdy nezostane visieť; hláška pri neúspechu je jasnejšia.",
+    "Widget má nové rozloženie: hore Fuelix, v strede QR ikona, dole TANKUJ."
   ]
 }
