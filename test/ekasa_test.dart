@@ -10,7 +10,7 @@ Map<String, dynamic> fuelReceipt({String itemName = 'Natural FuelSave'}) => {
     {
       'name': itemName,
       'quantity': 46.190,
-      'price': 1.624,
+      'price': 75.01,
       'vatRate': 23,
     },
   ],
@@ -77,7 +77,7 @@ void main() {
       final json = fuelReceipt();
       json['items'] = [
         {'name': 'Bageta', 'quantity': 1, 'price': 2.5},
-        {'name': 'Diesel', 'quantity': 30.0, 'price': 1.55},
+        {'name': 'Diesel', 'quantity': 30.0, 'price': 46.5},
         {'name': 'Káva', 'quantity': 1, 'price': 1.2},
       ];
       final data = EkasaReceipt.fromJson(json).toReceiptData();
@@ -97,7 +97,7 @@ void main() {
     test('builds an expense draft with item lines', () {
       final json = fuelReceipt();
       json['items'] = [
-        {'name': 'Bageta', 'quantity': 2, 'price': 2.5},
+        {'name': 'Bageta', 'quantity': 2, 'price': 5.0},
         {'name': 'Káva', 'quantity': 1, 'price': 1.2},
       ];
       final data = EkasaReceipt.fromJson(json).toExpenseData();

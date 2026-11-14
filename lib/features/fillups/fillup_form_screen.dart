@@ -173,6 +173,14 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
   final FocusNode _totalFocus = FocusNode();
   final FocusNode _priceFocus = FocusNode();
 
+  /// True once the user has edited anything, so back asks before discarding.
+  bool _dirty = false;
+
+  void _markDirty() {
+    if (_dirty) return;
+    setState(() => _dirty = true);
+  }
+
   /// True when the user typed the total themselves. Changing litres then
   /// recalculates the unit price instead of overwriting the total.
   bool _totalManual = false;
@@ -246,6 +254,7 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
       lastDate: DateTime.now().add(const Duration(days: 1)),
     );
     if (picked == null) return;
+    _markDirty();
     setState(() {
       _date = DateTime(
         picked.year,
@@ -291,7 +300,9 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
       if (draft.stationName != null && draft.stationName!.isNotEmpty) {
         _station.text = draft.stationName!;
       }
+      if (draft.date != null) _date = draft.date!;
     });
+    _markDirty();
     showSnack(context, context.t('qr.scanned'));
   }
 
@@ -441,6 +452,7 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
       await _repo.updateFillUp(values);
     }
     if (!mounted) return;
+    _dirty = false;
     Navigator.of(context).pop(true);
   }
 
@@ -453,7 +465,22 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
         ? _odometerValue! - _last!.odometer
         : null;
 
-    return Scaffold(
+    return PopScope(
+      canPop: !_dirty,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final discard = await confirmDialog(
+          context,
+          title: context.t('form.discardTitle'),
+          message: context.t('form.discardBody'),
+          confirmLabel: context.t('form.discard'),
+        );
+        if (discard && context.mounted) {
+          setState(() => _dirty = false);
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
       appBar: AppBar(
         title: Text(
           context.t(widget.fillUp == null ? 'fillup.add' : 'fillup.edit'),
@@ -525,7 +552,10 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
                     ],
                     onTap: () => _selectAll(_odometer),
-                    onChanged: (_) => setState(() {}),
+                    onChanged: (_) {
+                      _markDirty();
+                      setState(() {});
+                    },
                     decoration: InputDecoration(
                       labelText: context.t('fillup.odometer'),
                       hintText: context.t('fillup.odometerHint'),
@@ -553,7 +583,10 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
                     ],
                     onTap: () => _selectAll(_liters),
-                    onChanged: (_) => _syncAfterLitersChanged(),
+                    onChanged: (_) {
+                      _markDirty();
+                      _syncAfterLitersChanged();
+                    },
                     decoration: InputDecoration(
                       labelText: context.t('fillup.liters'),
                       hintText: context.t('fillup.litersHint'),
@@ -586,7 +619,10 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
                     ],
                     onTap: () => _selectAll(_total),
-                    onChanged: (_) => _syncFromTotal(),
+                    onChanged: (_) {
+                      _markDirty();
+                      _syncFromTotal();
+                    },
                     decoration: InputDecoration(
                       labelText: context.t('fillup.totalPrice'),
                       prefixText: '${_currencySymbol()} ',
@@ -605,7 +641,10 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
                     ],
                     onTap: () => _selectAll(_pricePerLiter),
-                    onChanged: (_) => _syncFromPrice(),
+                    onChanged: (_) {
+                      _markDirty();
+                      _syncFromPrice();
+                    },
                     decoration: InputDecoration(
                       labelText: context.t('fillup.pricePerLiter'),
                       prefixText: '${_currencySymbol()} ',
@@ -621,7 +660,10 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
                   TextFormField(
                     controller: _station,
                     textCapitalization: TextCapitalization.words,
-                    onChanged: (_) => setState(() {}),
+                    onChanged: (_) {
+                      _markDirty();
+                      setState(() {});
+                    },
                     decoration: InputDecoration(
                       labelText: context.t('fillup.station'),
                       hintText: context.t('fillup.stationHint'),
@@ -684,6 +726,7 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
                     controller: _note,
                     textCapitalization: TextCapitalization.sentences,
                     maxLines: 2,
+                    onChanged: (_) => _markDirty(),
                     decoration: InputDecoration(
                       labelText: context.t('common.notes'),
                     ),
@@ -697,14 +740,20 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
               title: Text(context.t('fillup.fullTank')),
               subtitle: Text(context.t('fillup.fullTankHelp')),
               value: _fullTank,
-              onChanged: (value) => setState(() => _fullTank = value),
+              onChanged: (value) {
+                _markDirty();
+                setState(() => _fullTank = value);
+              },
             ),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(context.t('fillup.missed')),
               subtitle: Text(context.t('fillup.missedHelp')),
               value: _missed,
-              onChanged: (value) => setState(() => _missed = value),
+              onChanged: (value) {
+                _markDirty();
+                setState(() => _missed = value);
+              },
             ),
             ListTile(
               contentPadding: EdgeInsets.zero,
@@ -721,6 +770,7 @@ class _FillUpFormScreenState extends State<FillUpFormScreen> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

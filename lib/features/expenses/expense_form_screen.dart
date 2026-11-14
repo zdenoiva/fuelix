@@ -41,6 +41,12 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
   late String _category;
   bool _isIncome = false;
   List<ExpenseCategory> _categories = const [];
+  bool _dirty = false;
+
+  void _markDirty() {
+    if (_dirty) return;
+    setState(() => _dirty = true);
+  }
 
   @override
   void initState() {
@@ -107,6 +113,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
         _categories.isNotEmpty) {
       _category = _categories.first.key;
     }
+    _markDirty();
     showSnack(context, context.t('qr.scanned'));
   }
 
@@ -126,6 +133,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
       lastDate: DateTime.now().add(const Duration(days: 1)),
     );
     if (picked == null) return;
+    _markDirty();
     setState(() => _date = picked);
   }
 
@@ -153,12 +161,28 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
       await _repo.updateExpense(values);
     }
     if (!mounted) return;
+    _dirty = false;
     Navigator.of(context).pop(true);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: !_dirty,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final discard = await confirmDialog(
+          context,
+          title: context.t('form.discardTitle'),
+          message: context.t('form.discardBody'),
+          confirmLabel: context.t('form.discard'),
+        );
+        if (discard && context.mounted) {
+          setState(() => _dirty = false);
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
       appBar: AppBar(
         title: Text(
           context.t(widget.expense == null ? 'expense.add' : 'expense.edit'),
@@ -179,6 +203,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
             TextFormField(
               controller: _title,
               textCapitalization: TextCapitalization.sentences,
+              onChanged: (_) => _markDirty(),
               decoration: InputDecoration(
                 labelText: context.t('expense.name'),
                 hintText: context.t('expense.nameHint'),
@@ -193,6 +218,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                 Expanded(
                   child: TextFormField(
                     controller: _amount,
+                    onChanged: (_) => _markDirty(),
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),
@@ -217,6 +243,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                 Expanded(
                   child: TextFormField(
                     controller: _odometer,
+                    onChanged: (_) => _markDirty(),
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),
@@ -247,8 +274,10 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                     selected: _category == category.key,
                     avatar: CategoryDot(color: category.color, size: 9),
                     label: Text(categoryName(context, category)),
-                    onSelected: (_) =>
-                        setState(() => _category = category.key),
+                    onSelected: (_) {
+                      _markDirty();
+                      setState(() => _category = category.key);
+                    },
                   ),
               ],
             ),
@@ -257,7 +286,10 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
               contentPadding: EdgeInsets.zero,
               title: Text(context.t('expense.income')),
               value: _isIncome,
-              onChanged: (value) => setState(() => _isIncome = value),
+              onChanged: (value) {
+                _markDirty();
+                setState(() => _isIncome = value);
+              },
             ),
             ListTile(
               contentPadding: EdgeInsets.zero,
@@ -271,6 +303,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
               controller: _note,
               textCapitalization: TextCapitalization.sentences,
               maxLines: 2,
+              onChanged: (_) => _markDirty(),
               decoration: InputDecoration(
                 labelText: context.t('common.notes'),
               ),
@@ -300,6 +333,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
             ],
           ],
         ),
+      ),
       ),
     );
   }

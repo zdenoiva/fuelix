@@ -13,6 +13,7 @@ import 'features/vehicle/vehicle_detail_screen.dart';
 import 'features/vehicle/vehicle_form_screen.dart';
 import 'l10n/strings.dart';
 import 'services/backup_service.dart';
+import 'services/lifecycle_service.dart';
 import 'services/location_service.dart';
 import 'services/notifications.dart';
 import 'services/receipt_scanner.dart';
@@ -22,6 +23,9 @@ import 'widgets/glass.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
+/// Requests the root shell to switch to a destination (0 = favourite/garage).
+final ValueNotifier<int> rootTabIndex = ValueNotifier<int>(0);
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AppState.instance.init();
@@ -30,6 +34,11 @@ Future<void> main() async {
   runApp(const FuelixApp());
   WidgetsBinding.instance.addPostFrameCallback((_) {
     ShortcutService.init(startWidgetFillUp);
+  });
+  LifecycleService.instance.init(() {
+    // After 15+ minutes in the background start again on the home screen.
+    rootTabIndex.value = 0;
+    rootNavigatorKey.currentState?.popUntil((route) => route.isFirst);
   });
 }
 
@@ -135,6 +144,7 @@ class _RootShellState extends State<RootShell> {
   @override
   void initState() {
     super.initState();
+    rootTabIndex.addListener(_onRootTabRequested);
     _favoriteSubscription = _repo.watchFavoriteVehicle().listen((vehicle) {
       if (!mounted) return;
       setState(() {
@@ -146,8 +156,14 @@ class _RootShellState extends State<RootShell> {
     });
   }
 
+  void _onRootTabRequested() {
+    if (!mounted) return;
+    setState(() => _index = rootTabIndex.value);
+  }
+
   @override
   void dispose() {
+    rootTabIndex.removeListener(_onRootTabRequested);
     _favoriteSubscription?.cancel();
     super.dispose();
   }

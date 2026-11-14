@@ -74,14 +74,18 @@ class EkasaItem {
   const EkasaItem({
     required this.name,
     required this.quantity,
-    required this.unitPrice,
+    required this.lineTotal,
   });
 
   final String name;
   final double quantity;
-  final double unitPrice;
 
-  double get total => quantity * unitPrice;
+  /// eKasa's `price` is the total for the line, not the unit price.
+  final double lineTotal;
+
+  double get unitPrice => quantity > 0 ? lineTotal / quantity : 0;
+
+  double get total => lineTotal;
 }
 
 /// Receipt data as returned by the eKasa API.
@@ -130,7 +134,7 @@ class EkasaReceipt {
       final price = _double(raw['price']);
       if (name.isEmpty || quantity == null || price == null) continue;
       items.add(
-        EkasaItem(name: name, quantity: quantity, unitPrice: price),
+        EkasaItem(name: name, quantity: quantity, lineTotal: price),
       );
     }
 

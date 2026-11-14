@@ -3,6 +3,13 @@
 Všetky podstatné zmeny Fuelixu. Formát vychádza z [Keep a Changelog](https://keepachangelog.com/sk/1.1.0/),
 verzie sa riadia [SemVer](https://semver.org/lang/sk/).
 
+## [0.6.1] - 2026-11-14
+
+- Opravené čítanie cien z eKasy: pole `price` je celková cena riadku, nie jednotková. Z 46,19 l a 75,01 € sa teraz správne počíta 1,624 €/l a poznámka výdavku ukáže 46,2× 1,62 € = 75,01 €.
+- Pri odchode z rozpísaného tankovania alebo výdavku sa appka spýta, či údaje zahodiť.
+- Ak bola appka na pozadí dlhšie ako 15 minút, po návrate sa otvorí domovská obrazovka namiesto rozpracovanej stránky.
+- Dátum z bločku sa doplní aj vtedy, keď sa bloček naskenuje až vo formulári.
+
 ## [0.6.0] - 2026-11-14
 
 - Výdavky sa dajú načítať z bločku: QR alebo fotka vyplní názov (obchod/prevádzku), sumu a dátum.
