@@ -1,13 +1,14 @@
 {
-  "version": "0.5.1",
-  "versionCode": 109,
-  "apkUrl": "https://github.com/zdenoiva/fuelix/releases/download/v0.5.1/fuelix-0.5.1.apk",
-  "sha256": "6678fe952f8963a8ece6d5fb9457a87ea660f19b94442025912dca98cfe992fc",
-  "size": 121430286,
-  "publishedAt": "2026-11-14T11:21:20Z",
+  "version": "0.6.0",
+  "versionCode": 110,
+  "apkUrl": "https://github.com/zdenoiva/fuelix/releases/download/v0.6.0/fuelix-0.6.0.apk",
+  "sha256": "742912573181a1f35ecde8a76322c42a7620d747b87b83a3f7116280308af008",
+  "size": 121430290,
+  "publishedAt": "2026-11-14T11:52:13Z",
   "changelog": [
-    "Miesto tankovania z GPS už obsahuje aj obec: z „Shell“ sa doplní „Shell Prievidza“ (reverse geocoding). Názvy, ktoré obec už majú alebo obsahujú pobočku (napr. „Shell PD“), zostanú bez zmeny.",
-    "Geolokácia má časový limit, takže tlačidlo „moja poloha“ nikdy nezostane visieť; hláška pri neúspechu je jasnejšia.",
-    "Widget má nové rozloženie: hore Fuelix, v strede QR ikona, dole TANKUJ."
+    "Výdavky sa dajú načítať z bločku: QR alebo fotka vyplní názov (obchod/prevádzku), sumu a dátum.",
+    "Z eKasa bločku sa do poznámky vypíšu všetky položky s množstvom, jednotkovou cenou a súčtom.",
+    "Tachometer pri výdavku je nepovinný (v poli je vyznačené „nepovinné“).",
+    "Dátum tankovania aj výdavku sa berie z bločku — z eKasy aj z fotky (OCR)."
   ]
 }
